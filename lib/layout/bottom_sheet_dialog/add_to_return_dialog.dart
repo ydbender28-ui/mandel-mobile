@@ -95,8 +95,7 @@ class _AddToReturnDialogState extends State<AddToReturnDialog>
                     }
 
                     return Image.network(
-                      CommonConstants.mandelImageBaseUrl +
-                          snapshot.data!.productImages![0].url ?? '',
+                      (snapshot.data!.productImages?.isNotEmpty == true ? (snapshot.data!.productImages![0].url ?? '') : ''),
                       fit: BoxFit.cover,
                       height: 245,
                       width: 245,

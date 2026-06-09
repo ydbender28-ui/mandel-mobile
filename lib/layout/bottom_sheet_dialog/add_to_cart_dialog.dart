@@ -71,8 +71,7 @@ class AddToCartDialog extends CommonCartUtility {
                         margin: const EdgeInsets.all(3),
                         child: Center(
                             child: Image.network(
-                          CommonConstants.mandelImageBaseUrl +
-                              productDto.productImages![0].url ?? '',
+                          (productDto.productImages?.isNotEmpty == true ? (productDto.productImages![0].url ?? '') : ''),
                           fit: BoxFit.cover,
                           height: 245,
                           width: 245,
