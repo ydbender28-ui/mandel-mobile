@@ -102178,9 +102178,9 @@ else return A.ap(A.a([A.z(B.w,A.cm("assets/images/mandel_empty_state.png",q,200,
 aob(a,b){var s=null,r=this.acm(a),q=t.p,p=A.bb(A.ap(A.a([A.a6(a.mH(),s,B.Z,s,!1,B.ji,s,s),A.a6(a.o4(),s,B.Z,s,!1,B.ba,s,s),A.a7(A.a([A.a6(a.o3(),s,B.Z,s,!1,B.ba,s,s),A.a6(a.o9(),s,B.Z,s,!1,B.ba,s,s)],q),B.i,B.h,B.f)],q),B.B,B.h,B.f),s,193),o=a.ju()
 return A.z(s,A.eH(!1,s,!0,A.ap(A.a([A.a7(A.a([r,p,B.P,A.ap(A.a([A.dp(A.z(s,A.ca(A.a6(a.Fz(),s,s,s,s,B.jl,s,s),s,s),B.e,s,s,s,s,s,B.br,s,s,s,s),o),A.ca(A.a6(a.ut(),s,s,s,s,B.mT,s,s),s,s)],q),B.i,B.h,B.f)],q),B.i,B.a5,B.f),this.aoa(a)],q),B.B,B.h,B.f),s,!0,s,s,s,s,s,s,s,s,s,s,new A.alI(this,a,b),s,s,s,s,s),B.e,s,s,s,s,s,B.bs,s,s,s,s)},
 acm(a){var s,r,q=null,p=a.z
-if(p.length!==0){p=B.b.gL(p).d
-p.toString
-s=p}else s=""
+if((p==null?q:p.length!==0)===!0){p.toString
+p=B.b.gL(p).d
+s=p==null?"":p}else s=""
 p=A.mb(A.V(B.d.b3(127.5),108,108,108))
 r=A.dy(10)
 return A.z(q,A.Bd(A.dy(15),A.z(q,A.ca(A.la(s,new A.alF(),B.c1,57,57),q,q),B.e,q,q,q,q,q,B.f0,q,q,q,q)),B.e,q,q,new A.bA(q,q,p,r,q,q,B.J),q,q,B.b5,q,q,q,q)},
