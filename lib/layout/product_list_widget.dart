@@ -264,16 +264,11 @@ class ProductListWidgetState extends State<ProductListWidget> {
     );
   }
 
-  _buildTabView(List<CategoryDto>? categoryList) {
-    List<Tab> tabList = [];
-    // ignore: unused_local_variable
-    for (var element in categoryList!) {
-      tabList.add(Tab(
-        child: _buildProductList(),
-      ));
-    }
-
-    return tabList;
+  List<Widget> _buildTabView(List<CategoryDto>? categoryList) {
+    return List<Widget>.generate(
+      categoryList!.length,
+      (index) => _buildProductList(),
+    );
   }
 
   Widget _buildShimmerTabView() {
