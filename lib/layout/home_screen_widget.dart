@@ -1,10 +1,8 @@
-import 'package:dio/dio.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:mandel_mobile_app/db/entity/configs_entity.dart';
-import 'package:mandel_mobile_app/db/repository/configs_repository.dart';
 import 'package:mandel_mobile_app/db/repository/order_master_repository.dart';
 import 'package:mandel_mobile_app/db/repository/order_repository.dart';
-import 'package:mandel_mobile_app/db/repository/user_master_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/multi_action_confirmation_widget.dart';
 import 'package:mandel_mobile_app/layout/deal_swiper_widget.dart';
 import 'package:mandel_mobile_app/layout/product_sync.dart';
@@ -36,27 +34,35 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
         CommonUtility,
         BarcodeScannerUtility {
   final OrderMasterRepository orderMasterRepo = OrderMasterRepository();
-  final UserMasterRepository userRepo = UserMasterRepository();
   final OrderRepository orderRepo = OrderRepository();
-  final ConfigsRepository configsRepository = ConfigsRepository();
   bool isCatalogueSyncMessageSown = false;
+
+  Future<String> _getCustomerName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('mandel_portal_token') ?? '';
+    if (token.isEmpty) return 'Customer';
+    try {
+      // Decode JWT payload (base64)
+      final parts = token.split('.');
+      if (parts.length < 2) return 'Customer';
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final Map<String, dynamic> data = json.decode(decoded);
+      return data['customerName'] ?? 'Customer';
+    } catch (_) { return 'Customer'; }
+  }
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkAndDisplayProductSync();
+    // No product sync needed — loading live from API
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    /// Log app life cycle state
     print(state);
-    if (AppLifecycleState.resumed == state) {
-      // _buildDownloadProductsBottomSheet();
-      // List<ProductDto> allProducts = await getAllPages();
-      // print(allProducts.length);
-      _checkAndDisplayProductSync();
-    }
+    // No product sync needed — loading live from API
   }
 
   @override
@@ -81,15 +87,12 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
             Container(
                 margin: const EdgeInsets.only(top: 0, left: 20, bottom: 25),
                 child: FutureBuilder(
-                  future: UserMasterRepository().getUserName(),
+                  future: _getCustomerName(),
                   builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return Text(
-                        snapshot.data!,
-                        style: const TextStyle(fontSize: 20),
-                      );
-                    }
-                    return const Text('Pending');
+                    return Text(
+                      snapshot.data ?? '',
+                      style: const TextStyle(fontSize: 20),
+                    );
                   },
                 )),
             Container(
@@ -191,39 +194,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
     ));
   }
 
-  void _checkAndDisplayProductSync() async {
-    // _showModal();
-    List<ConfigsEntity> configs = await configsRepository
-        .getConfigsyByKey(CommonConstants.catalogueSyncTimeConfigKey);
-    if (configs.isEmpty) {
-      _showModal();
-    } else {
-      ConfigsEntity lastSyncConfig = configs.first;
-      print(lastSyncConfig);
-      DateTime lastSyncTime =
-          DateTime.fromMicrosecondsSinceEpoch(int.parse(lastSyncConfig.value));
-      if (lastSyncTime
-              .add(const Duration(hours: 24))
-              .isBefore(DateTime.now()) &&
-          !isCatalogueSyncMessageSown) {
-        //l
-        setState(() {
-          isCatalogueSyncMessageSown = true;
-        });
-        print('synced before 10 mins ago showing modal now');
-        _showModal();
-      }
-    }
-  }
-
-  void _showModal() async {
-    await Navigator.of(context).push(PageRouteBuilder(
-        opaque: false,
-        pageBuilder: (BuildContext context, _, __) => const ProductSync()));
-    setState(() {
-      isCatalogueSyncMessageSown = false;
-    });
-  }
+  // Product sync removed — loading live from API
 
   void _buildFunctionsBottomSheet(BuildContext pageContext) {
     CommonNavOption navOption = CommonNavOption();
