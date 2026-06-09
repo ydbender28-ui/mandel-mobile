@@ -426,8 +426,8 @@ class ProductListWidgetState extends State<ProductListWidget> {
   }
 
   Widget _buildImageView(ProductDto productDt) {
-    final String imageUrl = productDt.productImages!.isNotEmpty
-        ? productDt.productImages!.first.url!
+    final String imageUrl = (productDt.productImages?.isNotEmpty == true)
+        ? (productDt.productImages!.first.url ?? '')
         : '';
     return Container(
       margin: const EdgeInsets.only(right: 20),
