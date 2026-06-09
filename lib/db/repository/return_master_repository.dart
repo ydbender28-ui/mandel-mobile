@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/return_master_entity.dart';
 import 'package:sqflite/sqflite.dart';
@@ -34,7 +34,7 @@ class ReturnMasterRepository {
       return await db.insert(
           tableReturnMaster, returnMasterEntity.insertDataToJson());
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }
@@ -47,7 +47,7 @@ class ReturnMasterRepository {
           tableReturnMaster, returnMasterEntity.updateDataToJson(),
           where: '${ReturnMasterField.id} = ?', whereArgs: [1]);
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }
@@ -67,7 +67,7 @@ class ReturnMasterRepository {
       final db = await DBHelper.instance.database;
       return await db.delete(tableReturnMaster);
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }

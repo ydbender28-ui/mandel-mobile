@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/model/media_dto.dart';
@@ -266,7 +266,7 @@ class _NewsScreenWidgetState extends State<NewsScreenWidget>
                           CommonConstants.mandelImageBaseUrl + e.url!);
                       await launchUrl(url);
                     } catch (error) {
-                      safePrint(error);
+                      debugPrint(error);
                     }
                   },
                   style: ElevatedButton.styleFrom(

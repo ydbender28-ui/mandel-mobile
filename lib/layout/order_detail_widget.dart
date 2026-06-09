@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -354,7 +354,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget>
                           Uri.parse(orderDto.invoice!.reference!.url!);
                       await launchUrl(_url);
                     } catch (error) {
-                      safePrint(error);
+                      debugPrint(error);
                     }
                   }
                 },

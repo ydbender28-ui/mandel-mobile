@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/configs_entity.dart';
 import 'package:sqflite/sqflite.dart';
@@ -10,7 +10,7 @@ class ConfigsRepository {
       return await db.insert(tableConfigs, configsEntity.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }

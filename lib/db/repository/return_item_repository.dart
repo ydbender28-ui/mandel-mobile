@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/return_item_entity.dart';
 import 'package:mandel_mobile_app/model/return_summary_dto.dart';
@@ -44,7 +44,7 @@ class ReturnItemRepository {
           tableReturnItem, returnItemEntity.updateQtyDataToJson(),
           where: '${ReturnItemField.productId} = ?', whereArgs: [productId]);
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }
@@ -73,7 +73,7 @@ class ReturnItemRepository {
       return await db.insert(
           tableReturnItem, returnItemEntity.insetDataToJson());
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }
@@ -88,7 +88,7 @@ class ReturnItemRepository {
           tableReturnItem, returnItemEntity.insetDataToJson(),
           where: '${ReturnItemField.productId} = ?', whereArgs: [productId]);
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }
@@ -150,7 +150,7 @@ class ReturnItemRepository {
       final db = await DBHelper.instance.database;
       return await db.delete(tableReturnItem);
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }

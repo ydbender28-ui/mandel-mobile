@@ -59,8 +59,7 @@ dependencies:
   dotted_border: ^2.1.0
   toggle_switch: ^2.1.0
   flutter_launcher_icons: ^0.13.1
-  amplify_flutter: ^1.6.1
-  amplify_auth_cognito: ^1.6.2
+  # amplify removed — using MandelDash portal auth instead
 
 dev_dependencies:
   flutter_test:

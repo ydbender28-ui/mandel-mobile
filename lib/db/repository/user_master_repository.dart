@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/user_master_entity.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
@@ -27,7 +27,7 @@ class UserMasterRepository {
       final db = await DBHelper.instance.database;
       return await db.insert(tableUserMaster, userMasterEntity.toJson());
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }
@@ -39,7 +39,7 @@ class UserMasterRepository {
       final db = await DBHelper.instance.database;
       return await db.delete(tableUserMaster);
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
     return 0;
   }

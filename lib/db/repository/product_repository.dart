@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/product_entity.dart';
 import 'package:mandel_mobile_app/model/meta_dto.dart';
@@ -14,7 +14,7 @@ class ProductRepository {
       Batch batch = db.batch();
       final noPriceProducts =
           products.where((element) => element.price!.isEmpty).toList();
-      safePrint(noPriceProducts.length);
+      debugPrint(noPriceProducts.length);
       for (var element in products) {
         batch.insert(
             tableProducts, ProductEntity.fromProudctDto(element).toJson(),
@@ -22,7 +22,7 @@ class ProductRepository {
       }
       await batch.commit();
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
   }
 

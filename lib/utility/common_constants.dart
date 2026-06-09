@@ -1,7 +1,6 @@
 class CommonConstants {
-  static const String mandelBaseUrl = 'https://api.dev.mandel.tunclab.net';
-  static const String mandelImageBaseUrl =
-      'https://app.dev .mandel.tunclab.net';
+  static const String mandelBaseUrl = 'https://app.mandelwholesale.com/portal/api';
+  static const String mandelImageBaseUrl = 'https://app.mandelwholesale.com';
   static const String helpUrl =
       "https://mandeldelivery.myshopify.com/pages/contact";
 

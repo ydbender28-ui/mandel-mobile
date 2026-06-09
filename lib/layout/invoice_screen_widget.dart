@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/model/invoice_dto.dart';
@@ -343,7 +343,7 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                     final Uri url = Uri.parse(medila.url!);
                     await launchUrl(url);
                   } catch (error) {
-                    safePrint(error);
+                    debugPrint(error);
                   }
                 },
                 style: ElevatedButton.styleFrom(

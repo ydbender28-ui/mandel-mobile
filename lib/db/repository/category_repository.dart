@@ -1,4 +1,4 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/category_entity.dart';
 import 'package:mandel_mobile_app/model/category_dto.dart';
@@ -17,7 +17,7 @@ class CategoryRepository {
       }
       await batch.commit();
     } catch (e) {
-      safePrint(e);
+      debugPrint(e);
     }
   }
 
