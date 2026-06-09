@@ -19,15 +19,14 @@ class OrderRepository {
     final idx = items.indexWhere((i) => i.productId == productId);
     if (idx >= 0) {
       final item = items[idx];
-      final updated = OrderItemEntity(
+      CartState.addItem(OrderItemEntity(
         productId: item.productId, productName: item.productName,
         qty: qty, unitPrice: item.unitPrice,
         subTotal: (item.unitPrice ?? 0) * qty,
         discount: item.discount, deal: item.deal,
         priceGroup: item.priceGroup, orderMasterId: item.orderMasterId,
         size: item.size, categoryName: item.categoryName, brandName: item.brandName,
-      );
-      CartState.addItem(updated);
+      ));
     }
     return 1;
   }
@@ -35,19 +34,38 @@ class OrderRepository {
   Future<bool> isItemExist(int productId) async =>
       CartState.isItemExist(productId);
 
+  Future<bool> isAnyItemExist() async => CartState.itemCount > 0;
+
   Future<int> getOrderItemCount() async => CartState.itemCount;
 
   Future<String> getOrderItemsSubTotal() async =>
       CartState.grandTotal.toStringAsFixed(2);
 
+  Future<String> getSubTotal() async =>
+      '\$${CartState.grandTotal.toStringAsFixed(2)}';
+
+  Future<String> getDiscount() async => '\$0.00';
+
+  Future<String> getFormattedGrandTotal() async =>
+      '\$${CartState.grandTotal.toStringAsFixed(2)}';
+
   Future<List<OrderItemEntity>> getOrderList() async =>
       CartState.items.toList();
+
+  Future<List<dynamic>> getCategoryWiseSummary() async {
+    final Map<String, double> catTotals = {};
+    for (final item in CartState.items) {
+      final cat = item.categoryName ?? 'Other';
+      catTotals[cat] = (catTotals[cat] ?? 0) + (item.subTotal ?? 0);
+    }
+    return catTotals.entries.map((e) => {'category': e.key, 'total': e.value}).toList();
+  }
 
   Future<List<OrderItem>> getOrderItemList() async {
     return CartState.items.map((e) => OrderItem(
       product: null, quantity: e.qty ?? 1,
       unitPrice: e.unitPrice ?? 0,
-      subTotal: e.subTotal ?? 0,
+      price: e.subTotal ?? 0,
     )).toList();
   }
 
@@ -63,13 +81,13 @@ class OrderRepository {
 
   Future<double> getPeoGrandTotal() async => CartState.grandTotal;
 
-  Future<int> clearOrderItems() async {
-    CartState.clear();
-    return 1;
-  }
+  Future<int> clearOrderItems() async { CartState.clear(); return 1; }
 
   Future<int> deleteOrderItem(int productId) async {
     CartState.removeItem(productId);
     return 1;
   }
+
+  // Alias methods used in cart_widget
+  Future<int> deleteItem(int productId) async => deleteOrderItem(productId);
 }

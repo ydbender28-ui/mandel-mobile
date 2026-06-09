@@ -30,4 +30,11 @@ class OrderMasterRepository {
     CartState.clear();
     return 1;
   }
+
+  Future<int> deleteOrder(int id) async {
+    _orderExists = false;
+    _lastUpdated = '';
+    CartState.clear();
+    return 1;
+  }
 }

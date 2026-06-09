@@ -330,7 +330,7 @@ class _CartWidgetState extends State<CartWidget>
                   ).showClearCartConfirmation();
                 } else {
                   OrderRepository().updateOrderItemQtyRecode(
-                      orderItemEntity, orderItemEntity.productId!);
+                      orderItemEntity.productId!, orderItemEntity.qty ?? 1);
                   update();
                 }
 
