@@ -55,12 +55,16 @@ class ProductListWidgetState extends State<ProductListWidget> {
 
   List<ProductDto> productList = [];
 
+  // Store the category future so it's only created once (not on every rebuild)
+  late Future<List<CategoryDto>> _categoryFuture;
+
   @override
   void initState() {
     super.initState();
     filters.addAll(widget.initialFilters);
     _initializeSharedPreferences();
     _setScrollListener();
+    _categoryFuture = _loadCategoryList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadProductList();
@@ -85,6 +89,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
     try {
       ProductSearchResultDto output = await _productService.searchProduct(
           filters, filters['page'], filters['pageSize']);
+      if (!mounted) return;
       setState(() {
         productList.addAll(output.results ?? []);
         _hasMore = (output.meta?.totalCount ?? 0) > productList.length;
@@ -92,6 +97,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
       });
     } catch (e) {
       debugPrint('Product load error: $e');
+      if (!mounted) return;
       setState(() { _initProductFetching = false; });
     }
   }
@@ -169,7 +175,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
     return Stack(
       children: [
         FutureBuilder(
-          future: _loadCategoryList(),
+          future: _categoryFuture,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Center(child: Text('Load error: ${snapshot.error}', style: const TextStyle(color: Colors.red, fontSize: 12)));
