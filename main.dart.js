@@ -101892,7 +101892,7 @@ acW(a,b){var s=null,r=this.acV(a),q=t.p,p=A.b6(A.ag(A.a([A.a8(a.mY(),s,B.a2,s,!1
 return A.w(s,A.ej(!1,s,!0,A.ag(A.a([A.a7(A.a([r,p,B.O,A.ag(A.a([A.dt(A.w(s,A.cd(A.a8(a.Gr(),s,s,s,s,B.jx,s,s),s,s),B.e,s,s,s,s,s,B.ai,s,s,s,s),o),A.cd(A.a8(a.uY(),s,s,s,s,B.na,s,s),s,s)],q),B.i,B.h,B.f)],q),B.i,B.a7,B.f),this.acT(a)],q),B.C,B.h,B.f),s,!0,s,s,s,s,s,s,s,s,s,s,new A.avW(this,a,b),s,s,s,s,s),B.e,s,s,s,s,s,B.l1,s,s,s,s)},
 acV(a){var s=null,r=A.l0(A.Q(B.d.b7(127.5),108,108,108)),q=A.dm(10),p=A.dm(15),o=a.z[0].d
 o.toString
-return A.w(s,A.vC(p,A.w(s,A.cd(A.jb("https://app.mandelwholesale.com"+o,new A.avT(),B.c8,57,57),s,s),B.e,s,s,s,s,s,B.f8,s,s,s,s)),B.e,s,s,new A.by(s,s,r,q,s,s,B.L),s,s,B.bb,s,s,s,s)},
+return A.w(s,A.vC(p,A.w(s,A.cd(A.jb(o,new A.avT(),B.c8,57,57),s,s),B.e,s,s,s,s,s,B.f8,s,s,s,s)),B.e,s,s,new A.by(s,s,r,q,s,s,B.L),s,s,B.bb,s,s,s,s)},
 acX(){return A.iy(null,new A.avX(this),15,B.bw,null,new A.avY(),!1)},
 acT(a){var s,r,q,p,o,n,m=null,l=t.p,k=A.a([],l),j=a.ay
 if(j!=null)for(s=j.length,r=0;r<j.length;j.length===s||(0,A.T)(j),++r){q=j[r]
@@ -102012,7 +102012,7 @@ ad_(){return A.di(new A.aw7(this),this.Bv(),t.Bz)},
 ad4(a,b){var s=null,r=A.l0(A.Q(B.d.b7(127.5),108,108,108)),q=A.dm(10),p=A.dm(15),o=b.f
 if(o.length!==0){o=o[0].d
 o.toString
-o=A.jb("https://app.mandelwholesale.com"+o,s,B.c8,57,57)}else o=A.bE("assets/images/mandel_no_image.jpg",B.c8,57,57)
+o=A.jb(o,s,B.c8,57,57)}else o=A.bE("assets/images/mandel_no_image.jpg",B.c8,57,57)
 q=A.w(s,A.vC(p,A.w(s,A.cd(o,s,s),B.e,s,s,s,s,s,B.f8,s,s,s,s)),B.e,s,s,new A.by(s,s,r,q,s,s,B.L),s,57,B.bb,s,s,s,57)
 r=b.d
 return A.w(s,A.DA(!1,s,s,s,!0,s,s,!1,q,s,new A.awi(a,b),!1,s,s,s,s,s,A.a8(r==null?" - ":r,s,s,s,s,B.nb,s,s),B.qG,s),B.e,s,s,s,s,s,B.W,s,s,s,s)},
@@ -102075,7 +102075,7 @@ o.toString
 s=J.a3(o)
 if(s.h(o,b).f.length!==0){r=s.h(o,b).f[0].d
 r.toString
-r=A.jb("https://app.mandelwholesale.com"+r,q,q,75,69)}else r=A.bE("assets/images/mandel_no_image.jpg",q,69,75)
+r=A.jb(r,q,q,75,69)}else r=A.bE("assets/images/mandel_no_image.jpg",q,69,75)
 p=A.w(q,A.bJ(q,q,r,q,new A.aw5(this.b,p,b),q,q,q,q),B.e,q,q,B.b4,q,87,B.ai,q,q,q,86)
 o=s.h(o,b).d
 return A.ag(A.a([p,A.b6(A.cd(A.a8(o==null?" - ":o,q,q,q,q,B.jt,B.c4,q),q,q),q,100)],t.p),B.i,B.h,B.f)},
@@ -102486,7 +102486,7 @@ p.toString
 s=p}else s=""
 p=A.l0(A.Q(B.d.b7(127.5),108,108,108))
 r=A.dm(10)
-return A.w(q,A.vC(A.dm(15),A.w(q,A.cd(A.jb("https://app.mandelwholesale.com"+s,new A.axL(),B.c8,57,57),q,q),B.e,q,q,q,q,q,B.f8,q,q,q,q)),B.e,q,q,new A.by(q,q,p,r,q,q,B.L),q,q,B.bb,q,q,q,q)},
+return A.w(q,A.vC(A.dm(15),A.w(q,A.cd(A.jb(s,new A.axL(),B.c8,57,57),q,q),B.e,q,q,q,q,q,B.f8,q,q,q,q)),B.e,q,q,new A.by(q,q,p,r,q,q,B.L),q,q,B.bb,q,q,q,q)},
 af1(){return A.iy(null,new A.axP(this),15,B.bw,null,new A.axQ(),!1)},
 aeZ(a){var s,r,q,p,o,n,m=null,l=t.p,k=A.a([],l),j=a.ay
 if(j!=null)for(s=j.length,r=0;r<j.length;j.length===s||(0,A.T)(j),++r){q=j[r]
@@ -102606,7 +102606,7 @@ adl(){return A.di(new A.ay_(this),this.Bw(),t.mn)},
 af5(a,b){var s=null,r=A.l0(A.Q(B.d.b7(127.5),108,108,108)),q=A.dm(10),p=A.dm(15),o=b.r
 if(o.length!==0){o=o[0].d
 o.toString
-o=A.jb("https://app.mandelwholesale.com"+o,s,B.c8,57,57)}else o=A.bE("assets/images/mandel_no_image.jpg",B.c8,57,57)
+o=A.jb(o,s,B.c8,57,57)}else o=A.bE("assets/images/mandel_no_image.jpg",B.c8,57,57)
 q=A.w(s,A.vC(p,A.w(s,A.cd(o,s,s),B.e,s,s,s,s,s,B.f8,s,s,s,s)),B.e,s,s,new A.by(s,s,r,q,s,s,B.L),s,57,B.bb,s,s,s,57)
 r=b.d
 return A.w(s,A.DA(!1,s,s,s,!0,s,s,!1,q,s,new A.aya(a,b),!1,s,s,s,s,s,A.a8(r==null?" - ":r,s,s,s,s,B.nb,s,s),B.qG,s),B.e,s,s,s,s,s,B.W,s,s,s,s)},
@@ -102669,7 +102669,7 @@ o.toString
 s=J.a3(o)
 if(s.h(o,b).r.length!==0){r=s.h(o,b).r[0].d
 r.toString
-r=A.jb("https://app.mandelwholesale.com"+r,q,q,75,69)}else r=A.bE("assets/images/mandel_no_image.jpg",q,69,75)
+r=A.jb(r,q,q,75,69)}else r=A.bE("assets/images/mandel_no_image.jpg",q,69,75)
 p=A.w(q,A.bJ(q,q,r,q,new A.axY(this.b,p,b),q,q,q,q),B.e,q,q,B.b4,q,87,B.ai,q,q,q,86)
 o=s.h(o,b).d
 return A.ag(A.a([p,A.b6(A.cd(A.a8(o==null?" - ":o,q,q,q,q,B.jt,B.c4,q),q,q),q,100)],t.p),B.i,B.h,B.f)},
@@ -102874,7 +102874,7 @@ A.dv("disposing deals swiper")},
 F(a){return A.di(new A.azq(this),this.zN(),t.Tg)},
 adw(a,b){var s=null,r=A.dm(10),q=a.z[0].d
 q.toString
-return A.ej(!1,s,!0,A.vC(r,A.jb("https://app.mandelwholesale.com"+q,new A.azk(),B.cI,s,s)),s,!0,s,s,s,s,s,s,s,s,s,s,new A.azl(this),s,s,s,s,s)},
+return A.ej(!1,s,!0,A.vC(r,A.jb(q,new A.azk(),B.cI,s,s)),s,!0,s,s,s,s,s,s,s,s,s,s,new A.azl(this),s,s,s,s,s)},
 adC(){var s=null
 return A.ag(A.a([A.w(s,A.bE("assets/images/mandel_new_order.png",s,40,40),B.e,s,s,s,s,s,B.ai,s,s,s,s),A.w(s,B.a1p,B.e,s,s,s,s,s,B.ai,s,s,s,s),A.w(s,B.a0K,B.e,s,s,s,s,s,B.l1,s,s,s,s),A.w(s,A.dT(!1,B.Da,B.e,s,s,s,s,s,new A.azm(this),s,A.dH(s,s,s,s,s,s,s,s,s,s,s,B.jm,s,s,B.ck,s,s,s,s,s)),B.e,s,s,s,s,s,B.l3,s,s,s,s)],t.p),B.i,B.aR,B.f)}}
 A.azr.prototype={
@@ -103241,7 +103241,7 @@ q.toString
 q=A.bB(q,r,t.w).w
 s=a.d
 s.toString
-return A.w(r,A.cd(A.jb("https://app.mandelwholesale.com"+s,new A.aC2(),B.cI,r,r),r,r),B.e,r,r,r,r,r,B.aI,r,r,r,q.a.a*0.86)}else if(q==="PDF"){q=this.c
+return A.w(r,A.cd(A.jb(s,new A.aC2(),B.cI,r,r),r,r),B.e,r,r,r,r,r,B.aI,r,r,r,q.a.a*0.86)}else if(q==="PDF"){q=this.c
 q.toString
 q=A.bB(q,r,t.w).w
 return A.w(r,A.cd(A.dT(!1,B.Dh,B.e,r,r,r,r,r,new A.aC3(a),r,A.dH(r,r,r,r,r,r,r,r,r,r,r,B.c2,r,r,r,r,r,r,r,r)),r,r),B.e,r,r,r,r,r,B.aI,r,r,r,q.a.a*0.86)}},
@@ -103705,7 +103705,7 @@ q.toString
 q=A.bB(q,r,t.w).w
 s=a.d
 s.toString
-return A.w(r,A.cd(A.jb("https://app.mandelwholesale.com"+s,new A.aDJ(),B.cI,r,r),r,r),B.e,r,r,r,r,r,B.aI,r,r,r,q.a.a*0.86)}else if(q==="PDF"){q=this.a.c
+return A.w(r,A.cd(A.jb(s,new A.aDJ(),B.cI,r,r),r,r),B.e,r,r,r,r,r,B.aI,r,r,r,q.a.a*0.86)}else if(q==="PDF"){q=this.a.c
 q.toString
 q=A.bB(q,r,t.w).w
 return A.w(r,A.cd(A.dT(!1,B.Dh,B.e,r,r,r,r,r,new A.aDK(a),r,A.dH(r,r,r,r,r,r,r,r,r,r,r,B.c2,r,r,r,r,r,r,r,r)),r,r),B.e,r,r,r,r,r,B.aI,r,r,r,q.a.a*0.86)}},
@@ -103719,7 +103719,7 @@ var $async$$0=A.p(function(a,b){if(a===1){p=b
 s=q}while(true)switch(s){case 0:q=3
 l=o.a.d
 l.toString
-n=A.fh("https://app.mandelwholesale.com"+l,0,null)
+n=A.fh(l,0,null)
 s=6
 return A.j(A.MZ(n),$async$$0)
 case 6:q=1
@@ -103832,7 +103832,7 @@ return A.bJ(s,s,A.bE("assets/images/mandel_angle_left.png",s,24,25),s,new A.aE_(
 adk(a){return A.aXk(0,B.qY,new A.aE0(this,a),2)},
 aec(a){var s=null,r=a.z[0].d
 r.toString
-return A.w(s,A.cd(A.jb("https://app.mandelwholesale.com"+r,new A.aE9(),B.c8,245,245),s,s),B.e,s,s,s,s,s,B.Jw,s,s,s,s)},
+return A.w(s,A.cd(A.jb(r,new A.aE9(),B.c8,245,245),s,s),B.e,s,s,s,s,s,B.Jw,s,s,s,s)},
 ae2(a,b){var s,r,q
 if(b){s=this.a
 r=s.c.x
@@ -104420,7 +104420,7 @@ p.toString
 s=p}else s=""
 p=A.l0(A.Q(B.d.b7(127.5),108,108,108))
 r=A.dm(10)
-return A.w(q,A.vC(A.dm(15),A.w(q,A.cd(A.jb("https://app.mandelwholesale.com"+s,new A.amU(),B.c8,57,57),q,q),B.e,q,q,q,q,q,B.f8,q,q,q,q)),B.e,q,q,new A.by(q,q,p,r,q,q,B.L),q,q,B.bb,q,q,q,q)},
+return A.w(q,A.vC(A.dm(15),A.w(q,A.cd(A.jb(s,new A.amU(),B.c8,57,57),q,q),B.e,q,q,q,q,q,B.f8,q,q,q,q)),B.e,q,q,new A.by(q,q,p,r,q,q,B.L),q,q,B.bb,q,q,q,q)},
 VQ(){return A.iy(null,new A.an_(this),15,B.bw,null,new A.an0(),!1)},
 apS(a){var s,r,q,p,o,n,m=null,l=t.p,k=A.a([],l),j=a.ay
 if(j!=null)for(s=j.length,r=0;r<j.length;j.length===s||(0,A.T)(j),++r){q=j[r]
@@ -105212,7 +105212,7 @@ m.toString
 m=A.bB(m,k,s).w
 l=this.c
 l.toString
-j.push(A.w(k,new A.BA(new A.bW(n,n,n,n),A.jb("https://app.mandelwholesale.com"+p,new A.aGi(),B.cI,m.a.a*0.2,A.bB(l,k,s).w.a.a*0.2),k),B.e,k,k,new A.by(B.n,k,k,new A.bW(o,o,o,o),k,k,B.L),k,k,new A.a1(r,0,0,0),B.l2,k,k,k))
+j.push(A.w(k,new A.BA(new A.bW(n,n,n,n),A.jb(p,new A.aGi(),B.cI,m.a.a*0.2,A.bB(l,k,s).w.a.a*0.2),k),B.e,k,k,new A.by(B.n,k,k,new A.bW(o,o,o,o),k,k,B.L),k,k,new A.a1(r,0,0,0),B.l2,k,k,k))
 r+=90;++q}return j}}
 A.aGm.prototype={
 $2(a,b){var s
