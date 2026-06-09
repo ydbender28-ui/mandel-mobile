@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class UserDto {
   int? id;
   DateTime? createdDateTime;
@@ -13,7 +11,7 @@ class UserDto {
   String? lastName;
   String? customerReferenceId;
   List<String>? contacts;
-  List<Double>? priceGroup;
+  List<double>? priceGroup;
 
   UserDto(
       {this.id,
@@ -57,7 +55,7 @@ class UserDto {
     }
 
     if (json['priceGroup'] != null) {
-      priceGroup = <Double>[];
+      priceGroup = <double>[];
       // json['priceGroup'].forEach((v) {
       //   priceGroup!.add(v);
       // });
