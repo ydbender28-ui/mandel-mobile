@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/cart_widget.dart';
-import 'package:mandel_mobile_app/layout/home_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/order_screen_widget.dart';
+import 'package:mandel_mobile_app/layout/product_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/profile_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/return_cart_widget.dart';
-import 'package:mandel_mobile_app/layout/return_screen_widget.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 import 'package:mandel_mobile_app/utility/top_indicator.dart';
 
@@ -41,7 +40,7 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
         child: Scaffold(
           body: const TabBarView(
             children: [
-              HomeScreenWidget(),
+              ProductScreenWidget(),
               OrderScreenWidget(isFromHomePage: true),
               CartWidget(isFromHomePage: true),
               // ReturnScreenWidget(isFromHomePage: true),
@@ -61,10 +60,10 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
               tabs: const [
                 Tab(
                     icon: Icon(
-                      Icons.home_outlined,
+                      Icons.storefront_outlined,
                       size: 25,
                     ),
-                    text: 'Home'),
+                    text: 'Products'),
                 Tab(
                     icon: Icon(
                       Icons.list_outlined,
