@@ -429,35 +429,27 @@ class ProductListWidgetState extends State<ProductListWidget> {
     final String imageUrl = (productDt.productImages?.isNotEmpty == true)
         ? (productDt.productImages!.first.url ?? '')
         : '';
+    final bool hasImage = imageUrl.isNotEmpty && imageUrl.startsWith('http');
     return Container(
       margin: const EdgeInsets.only(right: 20),
       decoration: BoxDecoration(
-          border: Border.all(
-              color: CommonCustomColor.menuItemColor.withOpacity(0.5)),
+          border: Border.all(color: CommonCustomColor.menuItemColor.withOpacity(0.5)),
           borderRadius: BorderRadius.circular(10)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15),
         child: Container(
           margin: const EdgeInsets.all(3),
-          child: Center(
-              child: Image.network(
-            CommonConstants.mandelImageBaseUrl + imageUrl,
-            errorBuilder: (context, error, stackTrace) {
-              return Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(
-                    width: 57,
-                    height: 57,
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(5.0))),
-                  ));
-            },
-            fit: BoxFit.cover,
-            height: 57,
-            width: 57,
-          )),
+          width: 57,
+          height: 57,
+          child: hasImage
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: 57,
+                height: 57,
+                errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
+              )
+            : const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
         ),
       ),
     );
