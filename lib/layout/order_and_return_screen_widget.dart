@@ -215,7 +215,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
       margin: const EdgeInsets.only(left: 10, right: 20, bottom: 10),
       child: Center(
           child: Image.network(
-        CommonConstants.mandelImageBaseUrl + productDto.productImages![0].url!,
+        (productDto.productImages?.isNotEmpty == true && productDto.productImages![0].url != null) ? productDto.productImages![0].url! : '',
         fit: BoxFit.cover,
         height: 245,
         width: 245,

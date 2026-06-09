@@ -326,7 +326,7 @@ class _CategoryProductScreenWidgetState
 
   Widget _buildImageView(ProductDto productDt) {
     final productImageUrl = productDt.productImages!.isNotEmpty
-        ? productDt.productImages!.first.url!
+        ? productDt.productImages!.first.url ?? ''
         : '';
     return Container(
       margin: const EdgeInsets.only(right: 20),

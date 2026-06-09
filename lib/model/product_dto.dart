@@ -275,7 +275,7 @@ class ProductDto {
   }
 
   String getProductImageUrl() {
-    return CommonConstants.mandelImageBaseUrl + productImages![0].url!;
+    return productImages!.isNotEmpty && productImages![0].url != null ? productImages![0].url! : '';
   }
 
   bool isDealExist() {

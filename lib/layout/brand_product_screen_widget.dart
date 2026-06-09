@@ -338,7 +338,7 @@ class _BrandProductScreenWidgetState extends State<BrandProductScreenWidget> {
           child: Center(
               child: Image.network(
             CommonConstants.mandelImageBaseUrl +
-                productDt.productImages![0].url!,
+                productDt.productImages![0].url ?? '',
             errorBuilder: (context, error, stackTrace) {
               return Shimmer.fromColors(
                   baseColor: Colors.grey.shade300,

@@ -72,7 +72,7 @@ class AddToCartDialog extends CommonCartUtility {
                         child: Center(
                             child: Image.network(
                           CommonConstants.mandelImageBaseUrl +
-                              productDto.productImages![0].url!,
+                              productDto.productImages![0].url ?? '',
                           fit: BoxFit.cover,
                           height: 245,
                           width: 245,
