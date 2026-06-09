@@ -64,29 +64,10 @@ class _ProductScreenWidgetState extends State<ProductScreenWidget> {
 
   Widget _buildFilterField() {
     return Container(
-      margin: const EdgeInsets.only(top: 54, bottom: 20, right: 20),
+      margin: const EdgeInsets.only(top: 54, bottom: 20, left: 16, right: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            margin: const EdgeInsets.only(left: 10, right: 10),
-            child: IconButton(
-              icon: Image.asset(
-                'assets/images/mandel_angle_left.png',
-                width: 25,
-                height: 24,
-              ),
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-                  builder: (context) {
-                    return const MainScreenWidget(
-                      defaultIndex: 0,
-                    );
-                  },
-                ), (route) => false);
-              },
-            ),
-          ),
           Flexible(
             child: TextFormField(
               enabled: true,

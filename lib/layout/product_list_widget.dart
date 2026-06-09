@@ -447,9 +447,9 @@ class ProductListWidgetState extends State<ProductListWidget> {
                 fit: BoxFit.cover,
                 width: 57,
                 height: 57,
-                errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
+                errorBuilder: (_, __, ___) => Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
               )
-            : const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
+            : Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
         ),
       ),
     );

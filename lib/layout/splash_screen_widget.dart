@@ -14,8 +14,9 @@ class _SplashScreenWidgetState extends State<SplashScreenWidget> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () async {
-      Navigator.of(context).pushNamed(CommonConstants.configurationScreenUrl);
+    // Skip 3-second delay — go straight to session check
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pushReplacementNamed(CommonConstants.configurationScreenUrl);
     });
   }
 
