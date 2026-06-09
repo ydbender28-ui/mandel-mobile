@@ -99849,8 +99849,9 @@ if(s!==0)return A.cC(A.xb(A.is(r.f,new A.auw(r),s+1,q,B.bq,new A.aux(),!1),r.gab
 else return A.ap(A.a([A.z(B.w,A.ce("assets/images/mandel_empty_state.png",q,200,200),B.e,q,q,q,q,q,q,q,q,q,q),A.z(q,B.eq,B.e,q,q,q,q,q,B.V,q,q,q,q),B.er],t.p),B.i,B.h,B.f)},
 abD(a,b){var s=null,r=this.abC(a),q=t.p,p=A.bb(A.ap(A.a([A.a6(a.mH(),s,B.Z,s,!1,B.jh,s,s),A.a6(a.o4(),s,B.Z,s,!1,B.ba,s,s),A.a7(A.a([A.a6(a.o3(),s,B.Z,s,!1,B.ba,s,s),A.a6(a.o9(),s,B.Z,s,!1,B.ba,s,s)],q),B.i,B.h,B.f)],q),B.B,B.h,B.f),s,193),o=a.ju()
 return A.z(s,A.eH(!1,s,!0,A.ap(A.a([A.a7(A.a([r,p,B.P,A.ap(A.a([A.dp(A.z(s,A.cc(A.a6(a.Fz(),s,s,s,s,B.jk,s,s),s,s),B.e,s,s,s,s,s,B.br,s,s,s,s),o),A.cc(A.a6(a.us(),s,s,s,s,B.mT,s,s),s,s)],q),B.i,B.h,B.f)],q),B.i,B.a5,B.f),this.abA(a)],q),B.B,B.h,B.f),s,!0,s,s,s,s,s,s,s,s,s,s,new A.auD(this,a,b),s,s,s,s,s),B.e,s,s,s,s,s,B.Ja,s,s,s,s)},
-abC(a){var s=null,r=A.mb(A.V(B.d.b3(127.5),108,108,108)),q=A.dy(10),p=A.dy(15),o=a.z[0].d
-o.toString
+abC(a){var s=null,r=A.mb(A.V(B.d.b3(127.5),108,108,108)),q=A.dy(10),p=A.dy(15),o=a.z
+if((o==null?s:o.length!==0)===!0){o=o[0].d
+if(o==null)o=""}else o=""
 return A.z(s,A.Bd(p,A.z(s,A.cc(A.la(o,new A.auA(),B.bC,57,57),s,s),B.e,s,s,s,s,s,B.f0,s,s,s,s)),B.e,s,s,new A.bA(s,s,r,q,s,s,B.J),s,s,B.b5,s,s,s,s)},
 abE(){return A.is(null,new A.auE(this),15,B.bt,null,new A.auF(),!1)},
 abA(a){var s,r,q,p,o,n,m=null,l=t.p,k=A.a([],l),j=a.ay
@@ -100455,8 +100456,7 @@ ady(a,b){var s=null,r=this.adx(a),q=t.p,p=A.bb(A.ap(A.a([A.a6(a.mH(),s,B.Z,s,!1,
 return A.z(s,A.eH(!1,s,!0,A.ap(A.a([A.a7(A.a([r,p,B.P,A.ap(A.a([A.dp(A.z(s,A.cc(A.a6(a.Fz(),s,s,s,s,B.jk,s,s),s,s),B.e,s,s,s,s,s,B.br,s,s,s,s),o),A.cc(A.a6(a.us(),s,s,s,s,B.mT,s,s),s,s)],q),B.i,B.h,B.f)],q),B.i,B.a5,B.f),this.adv(a)],q),B.B,B.h,B.f),s,!0,s,s,s,s,s,s,s,s,s,s,new A.aww(this,a,b),s,s,s,s,s),B.e,s,s,s,s,s,B.bs,s,s,s,s)},
 adx(a){var s,r,q=null,p=a.z
 if(p.length!==0){p=B.b.gL(p).d
-p.toString
-s=p}else s=""
+s=p==null?"":p}else s=""
 p=A.mb(A.V(B.d.b3(127.5),108,108,108))
 r=A.dy(10)
 return A.z(q,A.Bd(A.dy(15),A.z(q,A.cc(A.la(s,new A.awt(),B.bC,57,57),q,q),B.e,q,q,q,q,q,B.f0,q,q,q,q)),B.e,q,q,new A.bA(q,q,p,r,q,q,B.J),q,q,B.b5,q,q,q,q)},
@@ -101580,8 +101580,9 @@ return A.du(A.i7(r,!1,r,s.an8(a),A.a7(A.a([new A.c2(1,B.ac,A.a6(s.mG().mH(),5,r,
 an8(a){var s=null
 return A.cv(s,s,A.ce("assets/images/mandel_angle_left.png",s,24,25),s,new A.aCg(a),s,s,s,s)},
 ac0(a){return A.aV5(0,B.qz,new A.aCh(this,a),2)},
-acK(a){var s=null,r=a.z[0].d
-r.toString
+acK(a){var s=null,r=a.z
+if((r==null?s:r.length!==0)===!0&&r[0].d!=null){r=r[0].d
+r.toString}else r=""
 return A.z(s,A.cc(A.la(r,new A.aCq(),B.bC,245,245),s,s),B.e,s,s,s,s,s,B.IU,s,s,s,s)},
 acB(a,b){var s,r,q
 if(b){s=this.a
