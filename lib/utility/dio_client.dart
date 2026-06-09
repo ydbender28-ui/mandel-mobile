@@ -39,11 +39,12 @@ class DioClient with AuthSupportUtility {
       onError: (DioException err, handler) {
         if (null != err.response) {
           if (err.response!.statusCode == 401) {
-            Navigator.of(NavigationService.navigatorKey.currentContext!)
-                .pushNamed(CommonConstants.loginScreenUrl);
+            final ctx = NavigationService.navigatorKey.currentContext;
+            if (ctx != null) {
+              Navigator.of(ctx).pushNamed(CommonConstants.loginScreenUrl);
+            }
           }
         }
-
         return handler.next(err);
       },
     ));

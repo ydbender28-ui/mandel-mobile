@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
+import 'package:mandel_mobile_app/service/navigation_service.dart';
 import 'package:mandel_mobile_app/service/telemetry_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
@@ -49,6 +50,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Mandel Distributions',
       debugShowCheckedModeBanner: false,
+      navigatorKey: NavigationService.navigatorKey,
       scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
       theme: ThemeData(
           fontFamily: 'Nunito',

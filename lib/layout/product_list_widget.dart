@@ -82,14 +82,18 @@ class ProductListWidgetState extends State<ProductListWidget> {
     if (_initProductLoad) {
       productList.clear();
     }
-
-    ProductSearchResultDto output = await _productService.searchProduct(
-        filters, filters['page'], filters['pageSize']);
-    setState(() {
-      productList.addAll(output.results as Iterable<ProductDto>);
-      _hasMore = output.meta!.totalCount! > productList.length;
-      _initProductFetching = false;
-    });
+    try {
+      ProductSearchResultDto output = await _productService.searchProduct(
+          filters, filters['page'], filters['pageSize']);
+      setState(() {
+        productList.addAll(output.results ?? []);
+        _hasMore = (output.meta?.totalCount ?? 0) > productList.length;
+        _initProductFetching = false;
+      });
+    } catch (e) {
+      debugPrint('Product load error: $e');
+      setState(() { _initProductFetching = false; });
+    }
   }
 
   Future<List<CategoryDto>> _loadCategoryList() async {
@@ -167,6 +171,9 @@ class ProductListWidgetState extends State<ProductListWidget> {
         FutureBuilder(
           future: _loadCategoryList(),
           builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Text('Load error: ${snapshot.error}', style: const TextStyle(color: Colors.red, fontSize: 12)));
+            }
             if (snapshot.hasData) {
               return DefaultTabController(
                   length: snapshot.data!.length,
