@@ -1,14 +1,16 @@
-import 'package:mandel_mobile_app/db/repository/brand_repository.dart';
+import 'package:mandel_mobile_app/model/brand_dto.dart';
+import 'package:mandel_mobile_app/model/brand_search_result_dto.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 import 'package:mandel_mobile_app/utility/dio_client.dart';
 
 class BrandService with CommonUtility {
-  final BrandRepository repository = BrandRepository();
-
-  ///
-  ///This method will return brand list by filter data
-  getBrandList(Map<String, dynamic>? filters) {
-    // return DioClient().dio.get(buildUrl('/brand'), queryParameters: filters);
-    return repository.getBrands(filters);
+  // Load live from API
+  Future<BrandSearchResultDto> getBrandList(Map<String, dynamic>? filters) async {
+    final response = await DioClient().dio.get(buildUrl('/brand'));
+    List<BrandDto> brands = [];
+    if (response.data is List) {
+      brands = (response.data as List).map((e) => BrandDto.fromJson(e)).toList();
+    }
+    return BrandSearchResultDto(results: brands);
   }
 }
