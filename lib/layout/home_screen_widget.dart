@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/db/repository/order_master_repository.dart';
+import 'package:mandel_mobile_app/db/repository/user_master_repository.dart';
 import 'package:mandel_mobile_app/db/repository/order_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/multi_action_confirmation_widget.dart';
@@ -35,6 +37,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
         BarcodeScannerUtility {
   final OrderMasterRepository orderMasterRepo = OrderMasterRepository();
   final OrderRepository orderRepo = OrderRepository();
+  final UserMasterRepository userRepo = UserMasterRepository();
   bool isCatalogueSyncMessageSown = false;
 
   Future<String> _getCustomerName() async {
