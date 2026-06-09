@@ -70,13 +70,18 @@ class _CategoryProductScreenWidgetState
 
     filters['category'] = widget.categoryDto.name;
 
-    ProductSearchResultDto output = await _productService.searchProduct(
-        filters, filters['page'], filters['pageSize']);
-    setState(() {
-      productList.addAll(output.results as Iterable<ProductDto>);
-      _hasMore = output.meta!.totalCount! > productList.length;
-      _initProductFetching = false;
-    });
+    try {
+      ProductSearchResultDto output = await _productService.searchProduct(
+          filters, filters['page'], filters['pageSize']);
+      setState(() {
+        productList.addAll(output.results ?? []);
+        _hasMore = (output.meta?.totalCount ?? 0) > productList.length;
+        _initProductFetching = false;
+      });
+    } catch (e) {
+      debugPrint('Category product load error: $e');
+      setState(() { _initProductFetching = false; });
+    }
   }
 
   //
