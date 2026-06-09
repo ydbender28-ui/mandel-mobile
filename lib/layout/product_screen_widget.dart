@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/product_list_history_widget.dart';
 import 'package:mandel_mobile_app/layout/product_list_widget.dart';
+import 'package:mandel_mobile_app/model/product_details_options.dart';
 import 'package:mandel_mobile_app/model/product_search_arguments.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 
@@ -33,8 +34,14 @@ class _ProductScreenWidgetState extends State<ProductScreenWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context)!.settings.arguments as ProductSearchArguments;
+    // Handle being used as a tab (no route arguments) or as a pushed route (with arguments)
+    final routeArgs = ModalRoute.of(context)?.settings.arguments;
+    final args = routeArgs is ProductSearchArguments
+        ? routeArgs
+        : ProductSearchArguments(
+            filters: {},
+            productDetailsOptions: ProductDetailsOptions(showAddToCart: true, showReturn: false),
+          );
 
     Map<String, dynamic> filters = args.filters;
     filters['productName'] = _searchFieldController.text;
