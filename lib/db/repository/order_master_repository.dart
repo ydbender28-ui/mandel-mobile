@@ -1,81 +1,33 @@
-import 'package:flutter/foundation.dart';
-
-import 'package:mandel_mobile_app/db/db_helper.dart';
+// In-memory implementation — replaces SQLite for web compatibility
 import 'package:mandel_mobile_app/db/entity/order_master_entity.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:mandel_mobile_app/utility/cart_state.dart';
 
 class OrderMasterRepository {
-  ///
-  ///This method will return item exist
-  Future<bool> isOrderExist() async {
-    final db = await DBHelper.instance.database;
-    var sql = await db.rawQuery(
-        '''SELECT CASE COUNT(*) > 0 WHEN 0 THEN 0 ELSE 1 END FROM $tableOrderMaster mst WHERE mst.id=1 ''');
-    int? result = Sqflite.firstIntValue(sql);
+  static bool _orderExists = false;
+  static String _lastUpdated = '';
 
-    if (null == result) {
-      return false;
-    } else {
-      return result == 1;
-    }
+  Future<bool> isOrderExist() async => _orderExists;
+
+  Future<int> storeOrderMasterRecode(OrderMasterEntity orderMaster) async {
+    _orderExists = true;
+    _lastUpdated = orderMaster.updatedDate ?? '';
+    return 1;
   }
 
-  ///
-  ///This method will return last update time stamp of order
-  Future<String> getLastUpdatedTimeStamp() async {
-    final db = await DBHelper.instance.database;
-    var sql = await db.rawQuery(
-        '''SELECT mst.updated_date as stamp FROM $tableOrderMaster mst WHERE mst.id=1''');
-
-    return sql.isNotEmpty ? sql[0]['stamp'] as String : '';
+  Future<int> updateOrderMasterRecode(OrderMasterEntity orderMaster) async {
+    _lastUpdated = orderMaster.updatedDate ?? '';
+    return 1;
   }
 
-  ///
-  ///This method can be used for store order master information
-  Future<int> storeOrderMasterRecode(
-      OrderMasterEntity orderMasterEntity) async {
-    try {
-      final db = await DBHelper.instance.database;
-      return await db.insert(
-          tableOrderMaster, orderMasterEntity.insertDataToJson());
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-    return 0;
+  Future<List<OrderMasterEntity>> getLastUpdatedTimeStamp() async {
+    if (!_orderExists) return [];
+    return [OrderMasterEntity(id: 1, createdDate: _lastUpdated, updatedDate: _lastUpdated)];
   }
 
-  ///
-  ///This method can be used for update order master information
-  Future<int> updateOrderMasterRecode(
-      OrderMasterEntity orderMasterEntity) async {
-    try {
-      final db = await DBHelper.instance.database;
-      return await db.update(
-          tableOrderMaster, orderMasterEntity.updateDataToJson(),
-          where: '${OrderMasterField.id} = ?', whereArgs: [1]);
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-    return 0;
-  }
-
-  ///
-  ///This method can be used for delete order
-  Future<int> deleteOrder(int orderId) async {
-    final db = await DBHelper.instance.database;
-    return await db.delete(tableOrderMaster,
-        where: '${OrderMasterField.id} = ?', whereArgs: [orderId]);
-  }
-
-  ///
-  ///This method can be used for clear order master
   Future<int> clearOrderMaster() async {
-    try {
-      final db = await DBHelper.instance.database;
-      return await db.delete(tableOrderMaster);
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-    return 0;
+    _orderExists = false;
+    _lastUpdated = '';
+    CartState.clear();
+    return 1;
   }
 }
