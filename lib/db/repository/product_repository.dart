@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/product_entity.dart';
@@ -14,7 +15,7 @@ class ProductRepository {
       Batch batch = db.batch();
       final noPriceProducts =
           products.where((element) => element.price!.isEmpty).toList();
-      debugPrint(noPriceProducts.length);
+      debugPrint(noPriceProducts.length.toString());
       for (var element in products) {
         batch.insert(
             tableProducts, ProductEntity.fromProudctDto(element).toJson(),
@@ -22,7 +23,7 @@ class ProductRepository {
       }
       await batch.commit();
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
   }
 

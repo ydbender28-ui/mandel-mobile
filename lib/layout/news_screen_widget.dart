@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -266,7 +267,7 @@ class _NewsScreenWidgetState extends State<NewsScreenWidget>
                           CommonConstants.mandelImageBaseUrl + e.url!);
                       await launchUrl(url);
                     } catch (error) {
-                      debugPrint(error);
+                      debugPrint(error.toString());
                     }
                   },
                   style: ElevatedButton.styleFrom(

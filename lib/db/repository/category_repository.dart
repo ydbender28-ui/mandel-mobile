@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/category_entity.dart';
@@ -17,7 +18,7 @@ class CategoryRepository {
       }
       await batch.commit();
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
   }
 

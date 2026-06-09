@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -354,7 +355,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget>
                           Uri.parse(orderDto.invoice!.reference!.url!);
                       await launchUrl(_url);
                     } catch (error) {
-                      debugPrint(error);
+                      debugPrint(error.toString());
                     }
                   }
                 },

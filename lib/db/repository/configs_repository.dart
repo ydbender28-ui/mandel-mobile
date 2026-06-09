@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/configs_entity.dart';
@@ -10,7 +11,7 @@ class ConfigsRepository {
       return await db.insert(tableConfigs, configsEntity.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }

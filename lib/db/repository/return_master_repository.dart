@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/return_master_entity.dart';
@@ -34,7 +35,7 @@ class ReturnMasterRepository {
       return await db.insert(
           tableReturnMaster, returnMasterEntity.insertDataToJson());
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }
@@ -47,7 +48,7 @@ class ReturnMasterRepository {
           tableReturnMaster, returnMasterEntity.updateDataToJson(),
           where: '${ReturnMasterField.id} = ?', whereArgs: [1]);
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }
@@ -67,7 +68,7 @@ class ReturnMasterRepository {
       final db = await DBHelper.instance.database;
       return await db.delete(tableReturnMaster);
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }

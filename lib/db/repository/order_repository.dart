@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/order_item_entity.dart';
@@ -239,7 +240,7 @@ class OrderRepository {
       final db = await DBHelper.instance.database;
       return await db.delete(tableOrderItem);
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }

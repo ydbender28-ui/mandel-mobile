@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/order_master_entity.dart';
@@ -38,7 +39,7 @@ class OrderMasterRepository {
       return await db.insert(
           tableOrderMaster, orderMasterEntity.insertDataToJson());
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }
@@ -53,7 +54,7 @@ class OrderMasterRepository {
           tableOrderMaster, orderMasterEntity.updateDataToJson(),
           where: '${OrderMasterField.id} = ?', whereArgs: [1]);
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }
@@ -73,7 +74,7 @@ class OrderMasterRepository {
       final db = await DBHelper.instance.database;
       return await db.delete(tableOrderMaster);
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }

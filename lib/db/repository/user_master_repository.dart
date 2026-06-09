@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:mandel_mobile_app/db/db_helper.dart';
 import 'package:mandel_mobile_app/db/entity/user_master_entity.dart';
@@ -27,7 +28,7 @@ class UserMasterRepository {
       final db = await DBHelper.instance.database;
       return await db.insert(tableUserMaster, userMasterEntity.toJson());
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }
@@ -39,7 +40,7 @@ class UserMasterRepository {
       final db = await DBHelper.instance.database;
       return await db.delete(tableUserMaster);
     } catch (e) {
-      debugPrint(e);
+      debugPrint(e.toString());
     }
     return 0;
   }
