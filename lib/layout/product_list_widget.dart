@@ -65,10 +65,8 @@ class ProductListWidgetState extends State<ProductListWidget> {
     _initializeSharedPreferences();
     _setScrollListener();
     _categoryFuture = _loadCategoryList();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _loadProductList();
-    });
+    // Load products immediately — don't wait for categories or next frame
+    Future.microtask(() => _loadProductList());
   }
 
   @override
@@ -174,40 +172,21 @@ class ProductListWidgetState extends State<ProductListWidget> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        FutureBuilder(
-          future: _categoryFuture,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(child: Text('Load error: ${snapshot.error}', style: const TextStyle(color: Colors.red, fontSize: 12)));
-            }
-            if (snapshot.hasData) {
-              return DefaultTabController(
-                  length: snapshot.data!.length,
-                  initialIndex: widget.startingTab,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildTabList(snapshot.data),
-                      Flexible(
-                          child: TabBarView(
-                              physics: const NeverScrollableScrollPhysics(),
-                              children: _buildTabView(snapshot.data)))
-                    ],
-                  ));
-            } else {
-              return Column(
-                children: [
-                  _buildShimmerTabView(),
-                  Flexible(
-                    child: Shimmer.fromColors(
-                        baseColor: Colors.grey.shade300,
-                        highlightColor: Colors.grey.shade100,
-                        child: _buildShimmerListView()),
-                  )
-                ],
-              );
-            }
-          },
+        Column(
+          children: [
+            // Category tabs — load async, show shimmer until ready
+            FutureBuilder(
+              future: _categoryFuture,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return _buildTabListOnly(snapshot.data);
+                }
+                return _buildShimmerTabView();
+              },
+            ),
+            // Products — show immediately, don't wait for categories
+            Flexible(child: _buildProductList()),
+          ],
         ),
         ViewCartWidget(
           controller: _streamControllers,
@@ -222,6 +201,58 @@ class ProductListWidgetState extends State<ProductListWidget> {
           },
         )
       ],
+    );
+  }
+
+  Widget _buildTabListOnly(List<CategoryDto>? categoryList) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(categoryList!.length, (index) {
+          final cat = categoryList[index];
+          final isSelected = (filters['category'] == cat.name) ||
+              (index == 0 && filters['category'] == null && filters['isOnDeal'] == null && filters['isNewItem'] == null) ||
+              (index == 1 && filters['isOnDeal'] == true) ||
+              (index == 2 && filters['isNewItem'] == true);
+          return GestureDetector(
+            onTap: () {
+              filters.remove('category');
+              filters.remove('isOnDeal');
+              filters.remove('isNewItem');
+              if (index == 0) {
+                // ALL
+              } else if (index == 1) {
+                filters['isOnDeal'] = true;
+              } else if (index == 2) {
+                filters['isNewItem'] = true;
+              } else {
+                filters['category'] = cat.name;
+              }
+              filters['page'] = 0;
+              _initProductLoad = true;
+              _initProductFetching = true;
+              _loadProductList();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(
+                  color: isSelected ? const Color(0xFF2E7D32) : Colors.transparent,
+                  width: 2,
+                )),
+              ),
+              child: Text(
+                cat.name ?? '',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? const Color(0xFF2E7D32) : Colors.black54,
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 
