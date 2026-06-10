@@ -116,7 +116,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
     }
     unitPrice = getProductInfo().getNonFormatPrice();
 
-    if (calculatePiecePrice) {
+    if (calculatePiecePrice && (getProductInfo().singleCount ?? 0) > 0) {
       unitPrice = unitPrice / getProductInfo().singleCount!;
     }
     return unitPrice;
@@ -131,7 +131,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
 
   @override
   Widget build(BuildContext context) {
-    returnTypeValue = widget.productDto!.isSingle! ? "PIECE" : "BOX";
+    returnTypeValue = (widget.productDto?.isSingle == true) ? "PIECE" : "BOX";
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -152,7 +152,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                     if (widget.showReturn) _buildBoxSingleSwitch(productDto),
                     _buildInformation(productDto),
                     const Expanded(child: SizedBox()),
-                    if (productDto.quantity! <= 0) _buildOutOfStock(productDto),
+                    if ((productDto.quantity ?? 1) <= 0) _buildOutOfStock(productDto),
                     const Expanded(child: SizedBox()),
                     _buildButtonList(getProductInfo())
                   ],

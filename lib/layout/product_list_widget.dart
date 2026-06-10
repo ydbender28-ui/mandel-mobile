@@ -456,15 +456,14 @@ class ProductListWidgetState extends State<ProductListWidget> {
   }
 
   Widget _buildInformation(ProductDto productDt) {
-    return SizedBox(
-      width: 193,
+    return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             productDt.getProductName(),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            softWrap: false,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           Text(

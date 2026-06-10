@@ -363,8 +363,7 @@ class _CategoryProductScreenWidgetState
   }
 
   Widget _buildInformation(ProductDto productDt) {
-    return SizedBox(
-      width: 193,
+    return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
