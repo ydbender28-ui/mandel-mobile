@@ -69,7 +69,7 @@ class _InvoiceScreenState extends State<InvoiceScreen>
 
   _buildTitle() {
     return const Text(
-      'Invoice',
+      'Invoices v2',
       style: TextStyle(fontSize: 24),
     );
   }
