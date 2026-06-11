@@ -138,7 +138,7 @@ class _RecentOrderSwiperState extends State<RecentOrderSwiper>
         Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
           builder: (context) {
             return const MainScreenWidget(
-              defaultIndex: 1,
+              defaultIndex: 2,
             );
           },
         ), (route) => false);

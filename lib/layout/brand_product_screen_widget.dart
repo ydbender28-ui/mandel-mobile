@@ -132,7 +132,7 @@ class _BrandProductScreenWidgetState extends State<BrandProductScreenWidget> {
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
                 builder: (context) {
                   return const MainScreenWidget(
-                    defaultIndex: 2,
+                    defaultIndex: 3,
                   );
                 },
               ), (route) => false);

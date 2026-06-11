@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/cart_widget.dart';
+import 'package:mandel_mobile_app/layout/home_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/order_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/product_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/profile_screen_widget.dart';
@@ -35,15 +36,15 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
     return WillPopScope(
       onWillPop: () async => false,
       child: DefaultTabController(
-        length: 5,
+        length: 6,
         initialIndex: widget.defaultIndex,
         child: Scaffold(
           body: const TabBarView(
             children: [
+              HomeScreenWidget(),
               ProductScreenWidget(),
               OrderScreenWidget(isFromHomePage: true),
               CartWidget(isFromHomePage: true),
-              // ReturnScreenWidget(isFromHomePage: true),
               ReturnCartWidget(),
               ProfileScreenWidget(isFromHomePage: true),
             ],
@@ -59,34 +60,22 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
               indicatorPadding: EdgeInsets.zero,
               tabs: const [
                 Tab(
-                    icon: Icon(
-                      Icons.storefront_outlined,
-                      size: 25,
-                    ),
+                    icon: Icon(Icons.home_outlined, size: 25),
+                    text: 'Home'),
+                Tab(
+                    icon: Icon(Icons.storefront_outlined, size: 25),
                     text: 'Products'),
                 Tab(
-                    icon: Icon(
-                      Icons.list_outlined,
-                      size: 25,
-                    ),
+                    icon: Icon(Icons.list_outlined, size: 25),
                     text: 'Orders'),
                 Tab(
-                    icon: Icon(
-                      Icons.shopping_cart_outlined,
-                      size: 25,
-                    ),
+                    icon: Icon(Icons.shopping_cart_outlined, size: 25),
                     text: 'Cart'),
                 Tab(
-                    icon: Icon(
-                      Icons.assignment_return_outlined,
-                      size: 25,
-                    ),
+                    icon: Icon(Icons.assignment_return_outlined, size: 25),
                     text: 'Returns'),
                 Tab(
-                    icon: Icon(
-                      Icons.account_circle_outlined,
-                      size: 25,
-                    ),
+                    icon: Icon(Icons.account_circle_outlined, size: 25),
                     text: 'Profile')
               ],
             ),
