@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mandel_mobile_app/layout/invoice_screen_widget.dart';
+import 'package:mandel_mobile_app/model/invoice_dto.dart';
 import 'package:mandel_mobile_app/model/ledger_row_dto.dart';
 import 'package:mandel_mobile_app/service/ar_service.dart';
+import 'package:mandel_mobile_app/service/invoice_service.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -13,6 +16,7 @@ class ArScreenWidget extends StatefulWidget {
 
 class _ArScreenWidgetState extends State<ArScreenWidget> {
   final _arService = ArService();
+  final _invoiceService = InvoiceService();
   late Future<void> _loadFuture;
   List<LedgerRowDto> _rows = [];
   double _balance = 0;
@@ -231,6 +235,22 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
     }
 
     return ListTile(
+      onTap: row.isInvoice && row.id != null
+          ? () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => InvoiceDetailScreen(
+                  invoice: InvoiceDto(
+                    arhId: row.id,
+                    number: row.invoice,
+                    amount: row.amount,
+                    invoiceDate: row.txDate,
+                    isOpen: true,
+                    status: 'OPEN',
+                  ),
+                  invoiceService: _invoiceService,
+                  formatDate: _formatDate,
+                ),
+              ))
+          : null,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       leading: Container(
         width: 42,
