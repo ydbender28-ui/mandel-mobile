@@ -233,12 +233,13 @@ class _InvoiceScreenState extends State<InvoiceScreen>
 
   Widget _buildListItem(BuildContext context, InvoiceDto invoice) {
     final isOpen = invoice.isOpen ?? (invoice.due != null && invoice.due! > 0);
-    return GestureDetector(
-        onTap: () => _showInvoiceDetail(invoice),
-        child: Container(
+    return Container(
         margin: const EdgeInsets.only(left: 10, top: 10, right: 10),
         child: Card(
-          child: Container(
+          clipBehavior: Clip.hardEdge,
+          child: InkWell(
+        onTap: () => _showInvoiceDetail(invoice),
+        child: Container(
             margin: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
