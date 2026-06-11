@@ -230,8 +230,13 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
 
     String subtitle = date;
     if (!isPayment && row.invoice != null) subtitle += '  •  Inv #${row.invoice}';
-    if (isPayment && row.checkNum != null && row.checkNum!.isNotEmpty) {
-      subtitle += '  •  ${row.payMethod ?? ''} #${row.checkNum}';
+    if (isPayment) {
+      if (row.checkNum != null && row.checkNum!.isNotEmpty) {
+        subtitle += '  •  ${row.payMethod ?? ''} #${row.checkNum}';
+      }
+      if (row.isOpen != null) {
+        subtitle += row.isOpen! ? '  •  Unapplied' : '  •  Applied';
+      }
     }
 
     return ListTile(

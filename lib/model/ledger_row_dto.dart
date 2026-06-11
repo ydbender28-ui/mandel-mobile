@@ -11,6 +11,7 @@ class LedgerRowDto {
   final double runningBalance;
   final String? payMethod;
   final String? checkNum;
+  final bool? isOpen;
 
   const LedgerRowDto({
     this.id,
@@ -25,6 +26,7 @@ class LedgerRowDto {
     required this.runningBalance,
     this.payMethod,
     this.checkNum,
+    this.isOpen,
   });
 
   factory LedgerRowDto.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class LedgerRowDto {
       runningBalance: (json['runningBalance'] ?? 0).toDouble(),
       payMethod: json['payMethod'],
       checkNum: json['checkNum'],
+      isOpen: json['isOpen'] == null ? null : (json['isOpen'] == true || json['isOpen'] == 1),
     );
   }
 
