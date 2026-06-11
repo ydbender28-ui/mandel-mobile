@@ -238,6 +238,9 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
         subtitle += row.isOpen! ? '  •  Unapplied' : '  •  Applied';
       }
     }
+    if (isCredit && row.isOpen != null) {
+      subtitle += row.isOpen! ? '  •  Available' : '  •  Applied';
+    }
 
     return ListTile(
       onTap: row.isInvoice && row.id != null
