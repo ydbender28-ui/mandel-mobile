@@ -19,7 +19,7 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /mandel-mobile/
+        run: flutter build web --release --no-pwa --base-href /mandel-mobile/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
