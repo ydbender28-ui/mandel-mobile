@@ -149,56 +149,21 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                   }
                 case ConnectionState.done:
                   {
+                    if (_invoiceList.isEmpty) {
+                      return const Expanded(
+                        child: Center(child: Text('No invoices found.')),
+                      );
+                    }
                     return Expanded(
                       child: RefreshIndicator(
                         onRefresh: _reload,
-                        child: ListView.builder(
+                        child: SingleChildScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          controller: _scrollController,
-                          itemCount: _invoiceList.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            if (index < _invoiceList.length) {
-                              return _buildListItem(
-                                  context, _invoiceList[index]);
-                            } else if (_invoiceList.isEmpty) {
-                              return Column(
-                                children: [
-                                  Container(
-                                    alignment: Alignment.center,
-                                    child: Image.asset(
-                                      'assets/images/mandel_empty_state.png',
-                                      width: 200,
-                                      height: 200,
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: const EdgeInsets.only(bottom: 10.0),
-                                    child: const Text(
-                                      'Everyting caught up!',
-                                      style: TextStyle(
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.w700),
-                                    ),
-                                  ),
-                                  const Text(
-                                    'Will let you know if there is anything else.!',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w400),
-                                  )
-                                ],
-                              );
-                            } else {
-                              return Visibility(
-                                  visible: _hasMore,
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 32),
-                                    child: Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  ));
-                            }
-                          },
+                          child: Column(
+                            children: _invoiceList
+                                .map((inv) => _buildListItem(context, inv))
+                                .toList(),
+                          ),
                         ),
                       ),
                     );
