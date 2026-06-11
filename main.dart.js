@@ -103205,7 +103205,7 @@ return A.df(A.h9(r,!1,r,r,p),r,A.hw(A.ac(A.a([A.w(r,B.a26,B.e,r,r,r,r,r,B.qh,r,r
 afi(a){return A.d_(new A.aye(this),new A.eR().GA(),t.ci)},
 aed(a,b,c){return A.b8(new A.fh(new A.ay9(this,a,b,c),null),null,null)},
 afg(){return A.d_(new A.ay0(),new A.eR().lD(),t.j)},
-aeO(){return A.a6(A.a([B.a1c,B.Q,A.d_(new A.ayg(),new A.eR().qv(),t.N)],t.p),B.i,B.h,B.f)},
+aeO(){return A.a6(A.a([B.a1b,B.Q,A.d_(new A.ayg(),new A.eR().qv(),t.N)],t.p),B.i,B.h,B.f)},
 adV(){return A.a6(A.a([B.a1u,B.Q,A.d_(new A.ay4(),new A.eR().uO(),t.N)],t.p),B.i,B.h,B.f)},
 afh(){return A.a6(A.a([B.DG,B.Q,A.d_(new A.ay5(),new A.eR().lE(),t.N)],t.p),B.i,B.h,B.f)},
 adU(){var s=null
@@ -104196,7 +104196,7 @@ return A.t(null,r)}})
 return A.u($async$Bu,r)},
 asj(){this.e.S(0,new A.aD2(this))},
 F(a){var s=null
-return A.df(A.h9(s,!1,s,this.adz(),B.a19),s,this.adC(),s,s)},
+return A.df(A.h9(s,!1,s,this.adz(),B.a1c),s,this.adC(),s,s)},
 aeL(){return A.fP(null,new A.aCZ(this),15,B.bm,null,new A.aD_(),!1)},
 adC(){var s=this.ae_(),r=this.w
 r===$&&A.b()
@@ -105804,7 +105804,7 @@ return A.u($async$wp,r)},
 aeI(){var s=this.as
 return A.pU(new A.aG8(this),null,new A.i9(s,s.$ti.i("i9<1>")),t.xQ)},
 W8(){var s=null,r=A.a([A.w(B.u,A.bF("assets/images/mandel_animate_barcode.gif",s,200,200),B.e,s,s,s,s,s,s,s,s,s,s),A.w(s,B.a1X,B.e,s,s,s,s,s,B.aE,s,s,s,s)],t.p)
-if(this.cx.b)r.push(A.w(s,new A.VL(this.ch,new A.aG6(this),B.a1b,B.Ma,s),B.e,s,s,s,s,s,B.Kt,s,s,s,s))
+if(this.cx.b)r.push(A.w(s,new A.VL(this.ch,new A.aG6(this),B.a1a,B.Ma,s),B.e,s,s,s,s,s,B.Kt,s,s,s,s))
 return A.ac(r,B.i,B.h,B.f)},
 aqA(){var s=null
 return A.bH(s,s,A.bF("assets/images/mandel_angle_left.png",s,24,25),s,new A.aG7(this),s,s,s,s)}}
@@ -106040,7 +106040,7 @@ if(B.l5===o||o===B.l6)p.push(A.w(B.u,A.dX(!1,B.a2r,B.e,q,q,q,q,q,new A.aGG(r,a),
 o=r.w
 if(B.l5===o||o===B.l6){r.a.toString
 o=!0}else o=!1
-if(o)p.push(A.w(B.u,A.dX(!1,B.a1a,B.e,q,q,q,q,q,new A.aGH(a),q,A.dG(q,q,B.dj,q,q,q,q,q,q,q,q,B.jv,q,q,q,q,q,q,q,q)),B.e,q,q,q,q,q,q,B.lh,q,q,q))
+if(o)p.push(A.w(B.u,A.dX(!1,B.a19,B.e,q,q,q,q,q,new A.aGH(a),q,A.dG(q,q,B.dj,q,q,q,q,q,q,q,q,B.jv,q,q,q,q,q,q,q,q)),B.e,q,q,q,q,q,q,B.lh,q,q,q))
 if(B.q1===r.w){o=r.as
 s=new A.BF(o,50,5,B.pB,q)
 s.x=B.bV
@@ -116085,11 +116085,11 @@ B.Dt=new A.o(!0,B.ap,null,null,null,null,20,B.a4,null,null,null,null,null,null,n
 B.a16=new A.ad("Recent Orders",null,B.Dt,null,null,null,null,null,null,null)
 B.a17=new A.ad("No",null,B.aJ,null,null,null,null,null,null,null)
 B.a18=new A.ad("Loading product",null,B.bG,null,null,null,null,null,null,null)
+B.a19=new A.ad("Skip for now",null,B.jE,null,null,null,null,null,null,null)
+B.a1a=new A.ad("Rapid Mode",null,B.bG,null,null,null,null,null,null,null)
+B.a1b=new A.ad("Sub Total",null,B.hg,null,null,null,null,null,null,null)
 B.cu=new A.o(!0,null,null,null,null,null,24,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a19=new A.ad("Invoice",null,B.cu,null,null,null,null,null,null,null)
-B.a1a=new A.ad("Skip for now",null,B.jE,null,null,null,null,null,null,null)
-B.a1b=new A.ad("Rapid Mode",null,B.bG,null,null,null,null,null,null,null)
-B.a1c=new A.ad("Sub Total",null,B.hg,null,null,null,null,null,null,null)
+B.a1c=new A.ad("Invoices v2",null,B.cu,null,null,null,null,null,null,null)
 B.a1d=new A.ad("Product found",null,null,null,null,null,null,null,null,null)
 B.a1e=new A.ad("News",null,B.bp,null,null,null,null,null,null,null)
 B.Dy=new A.o(!0,B.ae,null,null,null,null,14,B.aP,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
