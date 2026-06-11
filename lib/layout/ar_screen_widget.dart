@@ -25,6 +25,8 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
   final List<String> _filterLabels = ['All', 'Invoices', 'Payments', 'Credits'];
   final List<String> _filterValues = ['', 'invoice', 'payment', 'credit'];
 
+  static const _bg = Color(0xFFF4F6FA);
+
   @override
   void initState() {
     super.initState();
@@ -76,19 +78,23 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _bg,
       appBar: AppBar(
+        backgroundColor: CommonCustomColor.mandelPrimaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
         automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: Image.asset('assets/images/mandel_angle_left.png',
-              width: 25, height: 24),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Account (AR)', style: TextStyle(fontSize: 24)),
+        title: const Text('Account (AR)',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white)),
       ),
       body: Column(
         children: [
           _buildBalanceCard(),
-          _buildFilterRow(),
+          _buildFilterTabs(),
           Expanded(child: _buildList()),
         ],
       ),
@@ -99,38 +105,42 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
     return FutureBuilder(
       future: _loadFuture,
       builder: (context, snapshot) {
+        final loading = snapshot.connectionState != ConnectionState.done;
         return Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          width: double.infinity,
           decoration: BoxDecoration(
-            color: CommonCustomColor.mandelPrimaryColor,
-            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              colors: [
+                CommonCustomColor.mandelPrimaryColor,
+                CommonCustomColor.mandelPrimaryColor.withOpacity(0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Outstanding Balance',
-                      style: TextStyle(color: Colors.white70, fontSize: 13)),
-                  SizedBox(height: 2),
-                  Text('Current AR',
-                      style: TextStyle(color: Colors.white54, fontSize: 11)),
-                ],
-              ),
-              snapshot.connectionState != ConnectionState.done
+              Text('Outstanding Balance',
+                  style: TextStyle(
+                      color: Colors.white.withOpacity(0.75),
+                      fontSize: 13,
+                      letterSpacing: 0.5)),
+              const SizedBox(height: 6),
+              loading
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 24,
+                      height: 24,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                          strokeWidth: 2.5, color: Colors.white))
                   : Text(
                       '\$${_balance.toStringAsFixed(2)}',
                       style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold),
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5),
                     ),
             ],
           ),
@@ -139,26 +149,52 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
     );
   }
 
-  Widget _buildFilterRow() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+  Widget _buildFilterTabs() {
+    return Container(
+      color: CommonCustomColor.mandelPrimaryColor.withOpacity(0.04),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Row(
         children: List.generate(_filterLabels.length, (i) {
           final selected = _filterType == _filterValues[i];
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(_filterLabels[i],
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _filterType = _filterValues[i]),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? CommonCustomColor.mandelPrimaryColor
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                              color: CommonCustomColor.mandelPrimaryColor
+                                  .withOpacity(0.35),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3))
+                        ]
+                      : [
+                          BoxShadow(
+                              color: Colors.black.withOpacity(0.06),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1))
+                        ],
+                ),
+                child: Text(
+                  _filterLabels[i],
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                      fontSize: 13,
-                      color: selected ? CommonCustomColor.mandelPrimaryColor : null)),
-              selected: selected,
-              onSelected: (_) =>
-                  setState(() => _filterType = _filterValues[i]),
-              selectedColor:
-                  CommonCustomColor.mandelPrimaryColor.withOpacity(0.15),
-              checkmarkColor: CommonCustomColor.mandelPrimaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: selected
+                        ? Colors.white
+                        : Colors.grey.shade600,
+                  ),
+                ),
+              ),
             ),
           );
         }),
@@ -172,91 +208,132 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return Shimmer.fromColors(
-            baseColor: Colors.grey.shade300,
-            highlightColor: Colors.grey.shade100,
+            baseColor: Colors.grey.shade200,
+            highlightColor: Colors.grey.shade50,
             child: _buildShimmer(),
           );
         }
         final rows = _filtered;
         if (rows.isEmpty) {
-          return const Center(
-            child: Text('No transactions found.',
-                style: TextStyle(fontSize: 16, color: Colors.grey)),
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.receipt_long_outlined,
+                    size: 56, color: Colors.grey.shade300),
+                const SizedBox(height: 12),
+                Text('No transactions found',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade400)),
+              ],
+            ),
           );
         }
         return RefreshIndicator(
           onRefresh: _reload,
-          child: ListView.separated(
+          color: CommonCustomColor.mandelPrimaryColor,
+          child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             itemCount: rows.length,
-            separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
-            itemBuilder: (context, index) => _buildRow(rows[index]),
+            itemBuilder: (context, index) => _buildCard(rows[index]),
           ),
         );
       },
     );
   }
 
-  Widget _buildRow(LedgerRowDto row) {
-    final date = _formatDate(row.txDate);
+  Widget _buildCard(LedgerRowDto row) {
     final isPayment = row.isPayment;
     final isCredit = row.isCredit;
 
+    // Colors & icons
+    Color accent;
     Color iconBg;
-    Color iconColor;
     IconData icon;
-    Color amountColor;
-    String amountPrefix;
 
     if (isPayment) {
-      iconBg = Colors.green.shade50;
-      iconColor = Colors.green.shade700;
-      icon = Icons.payments_outlined;
-      amountColor = Colors.green.shade700;
-      amountPrefix = '-';
+      accent = const Color(0xFF22C55E);
+      iconBg = const Color(0xFFDCFCE7);
+      icon = Icons.payments_rounded;
     } else if (isCredit) {
-      iconBg = Colors.orange.shade50;
-      iconColor = Colors.orange.shade700;
-      icon = Icons.undo_outlined;
-      amountColor = Colors.orange.shade700;
-      amountPrefix = '-';
+      accent = const Color(0xFFF97316);
+      iconBg = const Color(0xFFFFF0E6);
+      icon = Icons.undo_rounded;
+    } else if (row.isPDC) {
+      accent = const Color(0xFF8B5CF6);
+      iconBg = const Color(0xFFF3EDFF);
+      icon = Icons.event_note_rounded;
     } else {
-      iconBg = Colors.blue.shade50;
-      iconColor = Colors.blue.shade700;
-      icon = Icons.receipt_outlined;
-      amountColor = Colors.black87;
-      amountPrefix = '';
+      accent = const Color(0xFF3B82F6);
+      iconBg = const Color(0xFFEFF6FF);
+      icon = Icons.receipt_rounded;
     }
 
-    String subtitle = date;
+    final amountPositive = row.amount >= 0;
+    final amountColor = isPayment || isCredit
+        ? const Color(0xFF22C55E)
+        : amountPositive
+            ? const Color(0xFF1E293B)
+            : const Color(0xFF22C55E);
+    final amountPrefix = (isPayment || isCredit) ? '-' : (amountPositive ? '' : '-');
+
+    // Detail chips
+    final chips = <_ChipData>[];
+
     if (isPayment) {
       final method = row.payMethod ?? '';
       final checkNum = (row.checkNum != null && row.checkNum!.isNotEmpty) ? row.checkNum : null;
       final isPostDated = row.postDate != null;
-      if (checkNum != null) {
-        subtitle += '  •  $method #$checkNum';
-      } else if (method.isNotEmpty) {
-        subtitle += '  •  $method';
-      }
+
       if (isPostDated) {
-        subtitle += '  •  Post-Dated \$${row.amount.abs().toStringAsFixed(2)}  •  Deposit: ${_formatDate(row.postDate)}';
+        chips.add(_ChipData(
+            'Post-Dated  \$${row.amount.abs().toStringAsFixed(2)}',
+            const Color(0xFF8B5CF6),
+            const Color(0xFFF3EDFF)));
+        chips.add(_ChipData(
+            'Deposit: ${_formatDate(row.postDate)}',
+            const Color(0xFF6D28D9),
+            const Color(0xFFEDE9FE)));
+      } else if (checkNum != null) {
+        chips.add(_ChipData('$method #$checkNum', const Color(0xFF3B82F6), const Color(0xFFEFF6FF)));
+      } else if (method.isNotEmpty) {
+        chips.add(_ChipData(method, const Color(0xFF3B82F6), const Color(0xFFEFF6FF)));
       }
+
       if (row.isOpen != null) {
-        subtitle += row.isOpen! ? '  •  Unapplied' : '  •  Applied';
+        if (row.isOpen!) {
+          chips.add(_ChipData('Unapplied', const Color(0xFFF97316), const Color(0xFFFFF0E6)));
+        } else {
+          chips.add(_ChipData('Applied', const Color(0xFF22C55E), const Color(0xFFDCFCE7)));
+        }
       }
     } else if (isCredit) {
-      if (row.invoice != null) subtitle += '  •  - #${row.invoice}';
+      if (row.invoice != null) {
+        chips.add(_ChipData('- #${row.invoice}', const Color(0xFFF97316), const Color(0xFFFFF0E6)));
+      }
       if (row.isOpen != null) {
-        subtitle += row.isOpen! ? '  •  Available' : '  •  Applied';
+        if (row.isOpen!) {
+          chips.add(_ChipData('Available', const Color(0xFF3B82F6), const Color(0xFFEFF6FF)));
+        } else {
+          chips.add(_ChipData('Applied', const Color(0xFF22C55E), const Color(0xFFDCFCE7)));
+        }
       }
     } else {
-      if (row.invoice != null) subtitle += '  •  Inv #${row.invoice}';
+      if (row.invoice != null) {
+        chips.add(_ChipData('Inv #${row.invoice}', const Color(0xFF3B82F6), const Color(0xFFEFF6FF)));
+      }
       if (row.isPDC && row.postDate != null) {
-        subtitle += '  •  Post Date: ${_formatDate(row.postDate)}';
+        chips.add(_ChipData(
+            'Post Date: ${_formatDate(row.postDate)}',
+            const Color(0xFF8B5CF6),
+            const Color(0xFFF3EDFF)));
       }
     }
 
-    return ListTile(
+    return GestureDetector(
       onTap: row.isInvoice && row.id != null
           ? () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => InvoiceDetailScreen(
@@ -273,70 +350,147 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
                 ),
               ))
           : null,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      leading: Container(
-        width: 42,
-        height: 42,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: iconBg,
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2)),
+          ],
         ),
-        child: Icon(icon, color: iconColor, size: 20),
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(row.txType ?? '',
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w600)),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                child: Icon(icon, color: accent, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            row.txType ?? '',
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1E293B)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '$amountPrefix\$${row.amount.abs().toStringAsFixed(2)}',
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: amountColor),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _formatDate(row.txDate),
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade500),
+                          ),
+                        ),
+                        Text(
+                          'Bal: \$${row.runningBalance.toStringAsFixed(2)}',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                    if (chips.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: chips
+                            .map((c) => _buildChip(c.label, c.textColor, c.bgColor))
+                            .toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-          Text(
-            '$amountPrefix\$${row.amount.abs().toStringAsFixed(2)}',
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: amountColor),
-          ),
-        ],
-      ),
-      subtitle: Row(
-        children: [
-          Expanded(
-            child: Text(subtitle,
-                style:
-                    const TextStyle(fontSize: 12, color: Colors.grey)),
-          ),
-          Text(
-            'Bal: \$${row.runningBalance.toStringAsFixed(2)}',
-            style:
-                TextStyle(fontSize: 12, color: Colors.grey.shade600),
-          ),
-        ],
+        ),
       ),
     );
   }
 
+  Widget _buildChip(String label, Color textColor, Color bgColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w600, color: textColor)),
+    );
+  }
+
   Widget _buildShimmer() {
-    return ListView.separated(
-      itemCount: 10,
-      separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
-      itemBuilder: (_, __) => ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(8)),
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      itemCount: 8,
+      itemBuilder: (_, __) => Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(14)),
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                    color: Colors.white, shape: BoxShape.circle)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(height: 14, width: 120, color: Colors.white),
+                  const SizedBox(height: 6),
+                  Container(height: 11, width: 80, color: Colors.white),
+                  const SizedBox(height: 8),
+                  Container(height: 20, width: 60, color: Colors.white),
+                ],
+              ),
+            ),
+          ],
         ),
-        title: Container(
-            height: 14, width: 200, color: Colors.white),
-        subtitle: Container(
-            margin: const EdgeInsets.only(top: 6),
-            height: 12,
-            width: 140,
-            color: Colors.white),
       ),
     );
   }
+}
+
+class _ChipData {
+  final String label;
+  final Color textColor;
+  final Color bgColor;
+  const _ChipData(this.label, this.textColor, this.bgColor);
 }
