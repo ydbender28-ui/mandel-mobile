@@ -218,15 +218,20 @@ class _InvoiceScreenState extends State<InvoiceScreen>
   }
 
   void _showInvoiceDetail(InvoiceDto invoice) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => _InvoiceDetailSheet(
-        invoice: invoice,
-        invoiceService: _invoiceService,
-        formatDate: _formatDate,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: SizedBox(
+          width: double.infinity,
+          height: MediaQuery.of(context).size.height * 0.8,
+          child: _InvoiceDetailSheet(
+            invoice: invoice,
+            invoiceService: _invoiceService,
+            formatDate: _formatDate,
+          ),
+        ),
       ),
     );
   }
@@ -542,26 +547,20 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
   Widget build(BuildContext context) {
     final inv = widget.invoice;
     final isOpen = inv.isOpen ?? (inv.due != null && inv.due! > 0);
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.7,
-      maxChildSize: 0.95,
-      minChildSize: 0.4,
-      builder: (context, scrollController) {
-        return Column(
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 4),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
+    return Column(
+      children: [
+        // Header
+        Padding(
+          padding: const EdgeInsets.only(right: 8, top: 4),
+          child: Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-            // Header
-            Padding(
+          ),
+        ),
+        Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Row(
@@ -688,7 +687,6 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
                                 TextStyle(color: Colors.grey, fontSize: 14)));
                   }
                   return ListView.separated(
-                    controller: scrollController,
                     itemCount: items.length,
                     separatorBuilder: (_, __) =>
                         const Divider(height: 1, indent: 20, endIndent: 20),
@@ -700,8 +698,6 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
             ),
           ],
         );
-      },
-    );
   }
 
   Widget _buildItemRow(InvoiceLineItemDto item) {
