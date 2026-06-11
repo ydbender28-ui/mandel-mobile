@@ -2,6 +2,7 @@ import 'package:mandel_mobile_app/model/media_dto.dart';
 import 'package:mandel_mobile_app/model/user_dto.dart';
 
 class InvoiceDto {
+  int? arhId;
   int? id;
   int? number;
   String? type;
@@ -16,6 +17,7 @@ class InvoiceDto {
   MediaDto? reference;
 
   InvoiceDto({
+    this.arhId,
     this.id,
     this.number,
     this.type,
@@ -31,6 +33,7 @@ class InvoiceDto {
   });
 
   InvoiceDto.fromJson(Map<String, dynamic> json) {
+    arhId = json['arhId'];
     id = json['id'];
     // Portal returns id = invoice number; fallback to legacy 'number' field
     number = json['id'] ?? json['number'];

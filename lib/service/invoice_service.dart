@@ -6,4 +6,8 @@ class InvoiceService with CommonUtility {
   Future<Response> getInvoices(Map<String, dynamic>? filters) {
     return DioClient().dio.get(buildUrl("/invoice"), queryParameters: filters);
   }
+
+  Future<Response> getInvoiceItems(int arhId) {
+    return DioClient().dio.get(buildUrl("/invoice/$arhId/items"));
+  }
 }
