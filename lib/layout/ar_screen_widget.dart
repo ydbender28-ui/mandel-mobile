@@ -231,10 +231,15 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
     String subtitle = date;
     if (isPayment) {
       final method = row.payMethod ?? '';
-      if (row.checkNum != null && row.checkNum!.isNotEmpty) {
-        subtitle += '  •  $method #${row.checkNum}';
+      final checkNum = (row.checkNum != null && row.checkNum!.isNotEmpty) ? row.checkNum : null;
+      final isPostDated = row.postDate != null;
+      if (checkNum != null) {
+        subtitle += '  •  $method #$checkNum';
       } else if (method.isNotEmpty) {
         subtitle += '  •  $method';
+      }
+      if (isPostDated) {
+        subtitle += '  •  Post-Dated \$${row.amount.abs().toStringAsFixed(2)}  •  Deposit: ${_formatDate(row.postDate)}';
       }
       if (row.isOpen != null) {
         subtitle += row.isOpen! ? '  •  Unapplied' : '  •  Applied';
