@@ -229,17 +229,26 @@ class _ArScreenWidgetState extends State<ArScreenWidget> {
     }
 
     String subtitle = date;
-    if (!isPayment && row.invoice != null) subtitle += '  •  Inv #${row.invoice}';
     if (isPayment) {
+      final method = row.payMethod ?? '';
       if (row.checkNum != null && row.checkNum!.isNotEmpty) {
-        subtitle += '  •  ${row.payMethod ?? ''} #${row.checkNum}';
+        subtitle += '  •  $method #${row.checkNum}';
+      } else if (method.isNotEmpty) {
+        subtitle += '  •  $method';
       }
       if (row.isOpen != null) {
         subtitle += row.isOpen! ? '  •  Unapplied' : '  •  Applied';
       }
-    }
-    if (isCredit && row.isOpen != null) {
-      subtitle += row.isOpen! ? '  •  Available' : '  •  Applied';
+    } else if (isCredit) {
+      if (row.invoice != null) subtitle += '  •  - #${row.invoice}';
+      if (row.isOpen != null) {
+        subtitle += row.isOpen! ? '  •  Available' : '  •  Applied';
+      }
+    } else {
+      if (row.invoice != null) subtitle += '  •  Inv #${row.invoice}';
+      if (row.isPDC && row.postDate != null) {
+        subtitle += '  •  Post Date: ${_formatDate(row.postDate)}';
+      }
     }
 
     return ListTile(

@@ -11,6 +11,7 @@ class LedgerRowDto {
   final double runningBalance;
   final String? payMethod;
   final String? checkNum;
+  final String? postDate;
   final bool? isOpen;
 
   const LedgerRowDto({
@@ -26,6 +27,7 @@ class LedgerRowDto {
     required this.runningBalance,
     this.payMethod,
     this.checkNum,
+    this.postDate,
     this.isOpen,
   });
 
@@ -43,6 +45,7 @@ class LedgerRowDto {
       runningBalance: (json['runningBalance'] ?? 0).toDouble(),
       payMethod: json['payMethod'],
       checkNum: json['checkNum'],
+      postDate: json['postDate']?.toString(),
       isOpen: json['isOpen'] == null ? null : (json['isOpen'] == true || json['isOpen'] == 1),
     );
   }
