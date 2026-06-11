@@ -102520,12 +102520,12 @@ ae1(){return A.hw(A.a6(A.ak0(4,new A.avC(this),t.l),B.i,B.h,B.f),null,B.I,B.K8,n
 aeh(){var s=this.f
 s===$&&A.b()
 return A.d_(new A.avF(this),s,t.H)},
-aeI(a){var s,r,q,p,o,n,m,l,k,j=null,i=this.TK(a.b),h=a.e,g=h==="PAY",f=h==="REF"
-if(g){s=B.kP
+aeI(a){var s,r,q,p,o,n,m,l,k,j=null,i="  \u2022  Applied",h=this.TK(a.b),g=a.e,f=g==="PAY",e=g==="REF"
+if(f){s=B.kP
 r=B.e4
 q=B.LI
 p=B.e4
-o="-"}else if(f){s=B.Ik
+o="-"}else if(e){s=B.Ik
 r=B.pw
 q=B.LN
 p=B.pw
@@ -102533,18 +102533,20 @@ o="-"}else{s=B.kM
 r=B.kE
 q=B.LK
 p=B.a0
-o=""}h=!g
-n=h&&a.c!=null?i+("  \u2022  Inv #"+A.h(a.c)):i
-if(g){m=a.Q
+o=""}g=!f
+n=g&&a.c!=null?h+("  \u2022  Inv #"+A.h(a.c)):h
+if(f){m=a.Q
 if(m!=null&&m.length!==0){l=a.z
 n+="  \u2022  "+(l==null?"":l)+" #"+A.h(m)}m=a.as
-if(m!=null)n+=m?"  \u2022  Unapplied":"  \u2022  Applied"}h=h&&!f&&a.a!=null?new A.avH(this,a):j
+if(m!=null)n+=m?"  \u2022  Unapplied":i}if(e&&a.as!=null){m=a.as
+m.toString
+n+=m?"  \u2022  Available":i}g=g&&!e&&a.a!=null?new A.avH(this,a):j
 m=A.cP(8)
 m=A.w(j,A.ke(q,r,j,20),B.e,j,j,new A.bl(s,j,j,m,j,j,B.G),j,42,j,j,j,j,42)
 l=a.x
 k=t.p
 l=A.a6(A.a([A.bX(A.a2(l==null?"":l,j,j,j,j,B.Dl,j,j),1),A.a2(o+"$"+B.c.U(Math.abs(a.f),2),j,j,j,j,A.dU(j,j,p,j,j,j,j,j,j,j,j,14,j,j,B.aP,j,j,!0,j,j,j,j,j,j,j,j),j,j)],k),B.i,B.h,B.f)
-return A.ta(!1,B.Kj,j,j,!0,j,j,!1,m,j,h,!1,j,j,j,A.a6(A.a([A.bX(A.a2(n,j,j,j,j,B.Dh,j,j),1),A.a2("Bal: $"+B.c.U(a.y,2),j,j,j,j,A.dU(j,j,B.e5,j,j,j,j,j,j,j,j,12,j,j,j,j,j,!0,j,j,j,j,j,j,j,j),j,j)],k),B.i,B.h,B.f),j,l,j,j)},
+return A.ta(!1,B.Kj,j,j,!0,j,j,!1,m,j,g,!1,j,j,j,A.a6(A.a([A.bX(A.a2(n,j,j,j,j,B.Dh,j,j),1),A.a2("Bal: $"+B.c.U(a.y,2),j,j,j,j,A.dU(j,j,B.e5,j,j,j,j,j,j,j,j,12,j,j,j,j,j,!0,j,j,j,j,j,j,j,j),j,j)],k),B.i,B.h,B.f),j,l,j,j)},
 aeM(){return A.fP(null,new A.avI(),10,null,null,new A.avJ(),!1)}}
 A.avL.prototype={
 $1(a){var s,r,q,p,o,n,m,l,k,j,i="isOpen"
