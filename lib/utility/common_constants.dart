@@ -22,6 +22,7 @@ class CommonConstants {
   static const String dealsListScreenWidget = "/DealsListWidget";
   static const String newsScreenWidget = "/News";
   static const String invoiceScreenWidget = "/Invoice";
+  static const String arScreenWidget = "/AR";
 
   static const String symbolEmptyString = "";
   static const String emptyRecodeIndicator = " - ";

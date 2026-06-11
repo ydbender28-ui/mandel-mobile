@@ -208,20 +208,30 @@ class _InvoiceScreenState extends State<InvoiceScreen>
     );
   }
 
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
+    final datePart = raw.split('T').first;
+    final parts = datePart.split('-');
+    if (parts.length != 3) return datePart;
+    return '${parts[1]}/${parts[2]}/${parts[0]}';
+  }
+
   Widget _buildListItem(BuildContext context, InvoiceDto invoice) {
+    final isOpen = invoice.isOpen ?? (invoice.due != null && invoice.due! > 0);
     return Container(
         margin: const EdgeInsets.only(left: 10, top: 10, right: 10),
         child: Card(
           child: Container(
             margin: const EdgeInsets.all(12),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Row(
                       children: [
                         const Text(
-                          'Invoice No.#',
+                          'Invoice #',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w700),
                         ),
@@ -235,81 +245,101 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                       ],
                     ),
                     const Spacer(),
-                    Row(
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isOpen
+                            ? Colors.red.shade50
+                            : Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isOpen
+                              ? Colors.red.shade300
+                              : Colors.green.shade300,
+                        ),
+                      ),
+                      child: Text(
+                        isOpen ? 'OPEN' : 'PAID',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isOpen
+                              ? Colors.red.shade700
+                              : Colors.green.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (invoice.invoiceDate != null || invoice.dueDate != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Row(
                       children: [
-                        Text(
-                          '${invoice.type}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                        if (invoice.invoiceDate != null)
+                          Text(
+                            'Date: ${_formatDate(invoice.invoiceDate)}',
+                            style: const TextStyle(
+                                fontSize: 13, color: Colors.grey),
                           ),
-                        )
+                        if (invoice.invoiceDate != null &&
+                            invoice.dueDate != null)
+                          const Text('  •  ',
+                              style: TextStyle(color: Colors.grey)),
+                        if (invoice.dueDate != null)
+                          Text(
+                            'Due: ${_formatDate(invoice.dueDate)}',
+                            style: const TextStyle(
+                                fontSize: 13, color: Colors.grey),
+                          ),
                       ],
                     ),
+                  ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _amountTile('Total', invoice.amount),
+                    _amountTile('Paid', invoice.paid,
+                        color: Colors.green.shade700),
+                    _amountTile('Balance', invoice.due,
+                        color: (invoice.due ?? 0) > 0
+                            ? Colors.red.shade700
+                            : Colors.grey),
                   ],
                 ),
-                Row(
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'Amount \$',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700),
-                        ),
-                        Text(
-                          '${invoice.amount}',
-                          style: const TextStyle(fontSize: 16),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'Paid \$',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700),
-                        ),
-                        Text(
-                          '${invoice.paid}',
-                          style: const TextStyle(fontSize: 16),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'Due \$',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700),
-                        ),
-                        Text(
-                          '${invoice.due}',
-                          style: const TextStyle(fontSize: 16),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Column(
-                      children: [_buildImages(invoice.reference!)],
-                    )
-                  ],
-                )
+                if (invoice.reference != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Column(
+                              children: [_buildImages(invoice.reference!)]))
+                    ],
+                  ),
+                ]
               ],
             ),
           ),
         ));
+  }
+
+  Widget _amountTile(String label, double? value, {Color? color}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(
+          '\$${(value ?? 0).toStringAsFixed(2)}',
+          style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: color ?? Colors.black87),
+        ),
+      ],
+    );
   }
 
   _buildImages(MediaDto medila) {

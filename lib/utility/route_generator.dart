@@ -5,6 +5,7 @@ import 'package:mandel_mobile_app/layout/camera_scanner_widget.dart';
 import 'package:mandel_mobile_app/layout/category_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/deals_list_widget.dart';
 import 'package:mandel_mobile_app/layout/initializing_screen_widget.dart';
+import 'package:mandel_mobile_app/layout/ar_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/invoice_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/login_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
@@ -78,6 +79,9 @@ class RouteGenerator {
       case CommonConstants.invoiceScreenWidget:
         return MaterialPageRoute(
             builder: (_) => const InvoiceScreen(), settings: route);
+      case CommonConstants.arScreenWidget:
+        return MaterialPageRoute(
+            builder: (_) => const ArScreenWidget(), settings: route);
       default:
         return MaterialPageRoute(
             settings: route, builder: (_) => const SplashScreenWidget());

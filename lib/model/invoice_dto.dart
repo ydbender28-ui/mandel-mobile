@@ -8,31 +8,47 @@ class InvoiceDto {
   double? amount;
   double? paid;
   double? due;
+  String? invoiceDate;
+  String? dueDate;
+  String? status;
+  bool? isOpen;
   UserDto? user;
   MediaDto? reference;
 
-  InvoiceDto(
-      {this.id,
-      this.number,
-      this.type,
-      this.amount,
-      this.paid,
-      this.due,
-      this.user,
-      this.reference});
+  InvoiceDto({
+    this.id,
+    this.number,
+    this.type,
+    this.amount,
+    this.paid,
+    this.due,
+    this.invoiceDate,
+    this.dueDate,
+    this.status,
+    this.isOpen,
+    this.user,
+    this.reference,
+  });
 
   InvoiceDto.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    number = json['number'];
-    type = json['type'];
-    amount = json['amount'] == null ? 0.0 : json['amount'].toDouble();
-    paid = json['paid'] == null ? 0.0 : json['paid'].toDouble();
-    due = json['due'] == null ? 0.0 : json['due'].toDouble();
+    // Portal returns id = invoice number; fallback to legacy 'number' field
+    number = json['id'] ?? json['number'];
+    // Portal uses 'invoiceType'; legacy used 'type'
+    type = json['invoiceType'] ?? json['type'];
+    // Portal uses 'total'; legacy used 'amount'
+    amount = (json['total'] ?? json['amount'] ?? 0).toDouble();
+    paid = (json['paid'] ?? 0).toDouble();
+    // Portal uses 'balance'; legacy used 'due'
+    due = (json['balance'] ?? json['due'] ?? 0).toDouble();
+    invoiceDate = json['invoiceDate'];
+    dueDate = json['dueDate'];
+    status = json['status'];
+    isOpen = json['isOpen'];
 
     if (json['reference'] != null) {
       reference = MediaDto.fromJson(json['reference']);
     }
-
     if (json['user'] != null) {
       user = UserDto.fromJson(json['user']);
     }
@@ -46,15 +62,8 @@ class InvoiceDto {
     data['amount'] = amount;
     data['paid'] = paid;
     data['due'] = due;
-
-    if (user != null) {
-      data['user'] = user!.toJson();
-    }
-
-    if (reference != null) {
-      data['reference'] = reference!.toJson();
-    }
-
+    if (user != null) data['user'] = user!.toJson();
+    if (reference != null) data['reference'] = reference!.toJson();
     return data;
   }
 }

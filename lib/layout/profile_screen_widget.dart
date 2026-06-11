@@ -118,23 +118,6 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
               },
             ),
           ),
-          // SizedBox(
-          //   width: 135,
-          //   height: 42,
-          //   child: ElevatedButton(
-          //     style: ElevatedButton.styleFrom(
-          //         backgroundColor: const Color(0xFFFF9D0A),
-          //         shape: const RoundedRectangleBorder(
-          //           borderRadius: BorderRadius.all(Radius.circular(15.0)),
-          //         ),
-          //         minimumSize: const Size.fromHeight(45)),
-          //     onPressed: () {},
-          //     child: const Text(
-          //       "Edit Profile",
-          //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -152,6 +135,16 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
         index: 1,
         icon: Icons.shopping_cart,
         itemName: 'My Cart',
+      ),
+      ProfileItemDto(
+        index: 3,
+        icon: Icons.receipt_long_outlined,
+        itemName: 'Invoices',
+      ),
+      ProfileItemDto(
+        index: 5,
+        icon: Icons.account_balance_outlined,
+        itemName: 'Account (AR)',
       ),
       ProfileItemDto(
         index: 2,
@@ -233,6 +226,12 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     if (key == 2) {
       final Uri url = Uri.parse(CommonConstants.helpUrl);
       await launchUrl(url);
+    }
+    if (key == 3) {
+      Navigator.pushNamed(context, CommonConstants.invoiceScreenWidget);
+    }
+    if (key == 5) {
+      Navigator.pushNamed(context, CommonConstants.arScreenWidget);
     }
 
     if (key == 4) {
