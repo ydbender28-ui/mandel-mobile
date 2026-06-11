@@ -217,34 +217,21 @@ class _InvoiceScreenState extends State<InvoiceScreen>
     return '${parts[1]}/${parts[2]}/${parts[0]}';
   }
 
-  void _showInvoiceDetail(InvoiceDto invoice) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: SizedBox(
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.8,
-          child: _InvoiceDetailSheet(
+  Widget _buildListItem(BuildContext context, InvoiceDto invoice) {
+    final isOpen = invoice.isOpen ?? (invoice.due != null && invoice.due! > 0);
+    return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => InvoiceDetailScreen(
             invoice: invoice,
             invoiceService: _invoiceService,
             formatDate: _formatDate,
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildListItem(BuildContext context, InvoiceDto invoice) {
-    final isOpen = invoice.isOpen ?? (invoice.due != null && invoice.due! > 0);
-    return Container(
+        )),
+        child: Container(
         margin: const EdgeInsets.only(left: 10, top: 10, right: 10),
         child: Card(
-          clipBehavior: Clip.hardEdge,
-          child: InkWell(
-        onTap: () => _showInvoiceDetail(invoice),
-        child: Container(
+          child: Container(
             margin: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -767,5 +754,32 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
   Widget _divider() {
     return Container(
         width: 1, height: 30, color: Colors.grey.shade300);
+  }
+}
+
+class InvoiceDetailScreen extends StatelessWidget {
+  final InvoiceDto invoice;
+  final InvoiceService invoiceService;
+  final String Function(String?) formatDate;
+
+  const InvoiceDetailScreen({
+    super.key,
+    required this.invoice,
+    required this.invoiceService,
+    required this.formatDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Invoice #${invoice.number}'),
+      ),
+      body: _InvoiceDetailSheet(
+        invoice: invoice,
+        invoiceService: invoiceService,
+        formatDate: formatDate,
+      ),
+    );
   }
 }
