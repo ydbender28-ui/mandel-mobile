@@ -121,10 +121,12 @@ class _CartWidgetState extends State<CartWidget>
                   const Text('Order Cart',
                     style: TextStyle(color: Colors.white, fontSize: 22,
                         fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-                  FutureBuilder<String?>(
+                  FutureBuilder<List<OrderMasterEntity>>(
                     future: OrderMasterRepository().getLastUpdatedTimeStamp(),
                     builder: (_, snap) => Text(
-                      snap.data != null ? 'Updated ${snap.data}' : 'Empty cart',
+                      (snap.data?.isNotEmpty == true)
+                          ? 'Updated ${snap.data!.first.updatedDate ?? ''}'
+                          : 'Empty cart',
                       style: TextStyle(
                           color: Colors.white.withOpacity(0.5), fontSize: 11)),
                   ),
