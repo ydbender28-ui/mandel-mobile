@@ -471,6 +471,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
     final deal      = _dealFor(productDt);
     final salePriceEntry = _saleEntryFor(productDt);
     final bool onSale = salePriceEntry != null;
+    final bool isNew = productDt.isNew == true;
     return Container(
       margin: const EdgeInsets.only(right: 20),
       decoration: BoxDecoration(
@@ -490,7 +491,23 @@ class ProductListWidgetState extends State<ProductListWidget> {
               hasImage
                 ? MandelNetworkImage(url: imageUrl, width: 57, height: 57)
                 : Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
-              // Sale badge (red) takes priority over deal badge
+              // NEW badge (green) — top-left corner
+              if (isNew)
+                Positioned(
+                  top: 0, left: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF16a34a),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: const Text('NEW',
+                      style: TextStyle(
+                        color: Colors.white, fontSize: 7,
+                        fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                  ),
+                ),
+              // Sale badge (red) takes priority over deal badge (bottom)
               if (onSale)
                 Positioned(
                   bottom: 0, left: 0, right: 0,

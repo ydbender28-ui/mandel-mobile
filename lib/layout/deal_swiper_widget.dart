@@ -6,6 +6,7 @@ import 'package:mandel_mobile_app/model/product_search_arguments.dart';
 import 'package:mandel_mobile_app/service/ads_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DealSwiperWidget extends StatefulWidget {
   const DealSwiperWidget({super.key});
@@ -76,7 +77,10 @@ class _DealSwiperWidgetState extends State<DealSwiperWidget> {
   void _handleTap(PortalAdDto ad) {
     final lt = ad.linkType?.toLowerCase() ?? '';
     final lv = ad.linkValue ?? '';
-    if (lt == 'brand' && lv.isNotEmpty) {
+    if (lt == 'url' && lv.isNotEmpty) {
+      final uri = Uri.tryParse(lv);
+      if (uri != null) launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (lt == 'brand' && lv.isNotEmpty) {
       Navigator.pushNamed(context, CommonConstants.searchScreenUrl,
           arguments: ProductSearchArguments(
               filters: {'brand': lv},

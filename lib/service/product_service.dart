@@ -14,8 +14,15 @@ class ProductService with CommonUtility {
       if (filters['productName'] != null && filters['productName'].toString().isNotEmpty) {
         params['q'] = filters['productName'];
       }
-      if (filters['categoryId'] != null) params['category'] = filters['categoryId'];
-      if (filters['brandId'] != null) params['brand'] = filters['brandId'];
+      // Support both 'category' (callers) and 'categoryId' (legacy)
+      final cat = filters['category'] ?? filters['categoryId'];
+      if (cat != null) params['category'] = cat;
+      // Support both 'brand' (callers) and 'brandId' (legacy)
+      final brand = filters['brand'] ?? filters['brandId'];
+      if (brand != null) params['brand'] = brand;
+      if (filters['isNewItem'] == true) params['isNewItem'] = 'true';
+      if (filters['isOnSale'] == true) params['isOnSale'] = 'true';
+      if (filters['isOnDeal'] == true) params['isOnDeal'] = 'true';
     }
     final response = await DioClient().dio.get(buildUrl('/product'), queryParameters: params);
     return ProductSearchResultDto.fromJson(response.data);

@@ -170,7 +170,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
                   productDetailsOptions: ProductDetailsOptions(showAddToCart: true, showReturn: false)))),
       _QA(icon: Icons.receipt_long_rounded,       label: 'My Orders',
           color: const Color(0xFF10B981),
-          onTap: () => Navigator.pushNamed(context, CommonConstants.categoryScreenWidget)),
+          onTap: () => Navigator.pushNamed(context, CommonConstants.invoiceScreenWidget)),
       _QA(icon: Icons.grid_view_rounded,          label: 'Categories',
           color: const Color(0xFFF59E0B),
           onTap: () => Navigator.pushNamed(context, CommonConstants.categoryScreenWidget)),
