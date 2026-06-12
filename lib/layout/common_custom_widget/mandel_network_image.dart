@@ -6,17 +6,18 @@ import 'package:mandel_mobile_app/utility/auth_support_utility.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 
 /// Loads images via Dio with the session auth token, bypassing browser CORS/cache issues.
+/// Pass [width]/[height] = null to have the image fill its parent (BoxFit.cover).
 class MandelNetworkImage extends StatefulWidget {
   final String url;
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final BoxFit fit;
 
   const MandelNetworkImage({
     super.key,
     required this.url,
-    required this.width,
-    required this.height,
+    this.width,
+    this.height,
     this.fit = BoxFit.cover,
   });
 
@@ -26,11 +27,8 @@ class MandelNetworkImage extends StatefulWidget {
 
 class _MandelNetworkImageState extends State<MandelNetworkImage>
     with AuthSupportUtility {
-  // Simple in-memory cache shared across all instances.
   static final _cache = <String, Uint8List?>{};
   static const _maxCacheSize = 200;
-
-  // null = loading, _sentinel = error, otherwise bytes
   static final _sentinel = Uint8List(0);
 
   Uint8List? _bytes;
@@ -77,8 +75,7 @@ class _MandelNetworkImageState extends State<MandelNetworkImage>
         _storeAndSet(widget.url, _sentinel);
         return;
       }
-      final bytes = Uint8List.fromList(resp.data!);
-      _storeAndSet(widget.url, bytes);
+      _storeAndSet(widget.url, Uint8List.fromList(resp.data!));
     } catch (_) {
       _storeAndSet(widget.url, _sentinel);
     }
@@ -90,24 +87,29 @@ class _MandelNetworkImageState extends State<MandelNetworkImage>
     if (mounted) setState(() { _bytes = bytes; _loading = false; });
   }
 
-  Widget _placeholder() => Image.asset(
+  Widget _sized(Widget child) {
+    if (widget.width == null && widget.height == null) {
+      return SizedBox.expand(child: child);
+    }
+    return SizedBox(width: widget.width, height: widget.height, child: child);
+  }
+
+  Widget _placeholder() => _sized(Image.asset(
     'assets/images/mandel_no_image.jpg',
-    width: widget.width, height: widget.height, fit: widget.fit);
+    fit: widget.fit));
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return SizedBox(
-        width: widget.width, height: widget.height,
-        child: const Center(child: SizedBox(
-          width: 16, height: 16,
-          child: CircularProgressIndicator(strokeWidth: 1.5,
-            color: Color(0xFF9AA3C2)))));
+      return _sized(const Center(child: SizedBox(
+        width: 16, height: 16,
+        child: CircularProgressIndicator(strokeWidth: 1.5,
+          color: Color(0xFF9AA3C2)))));
     }
     final b = _bytes;
     if (b == null || b.isEmpty) return _placeholder();
-    return Image.memory(b,
-      width: widget.width, height: widget.height, fit: widget.fit,
-      errorBuilder: (_, __, ___) => _placeholder());
+    return _sized(Image.memory(b,
+      fit: widget.fit,
+      errorBuilder: (_, __, ___) => _placeholder()));
   }
 }

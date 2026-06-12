@@ -14,6 +14,8 @@ import 'package:mandel_mobile_app/model/product_search_result_dto.dart';
 import 'package:mandel_mobile_app/service/category_service.dart';
 import 'package:mandel_mobile_app/service/product_service.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/mandel_network_image.dart';
+import 'package:mandel_mobile_app/model/portal_deal_dto.dart';
+import 'package:mandel_mobile_app/service/ads_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,6 +58,8 @@ class ProductListWidgetState extends State<ProductListWidget> {
 
   List<ProductDto> productList = [];
 
+  List<PortalDealDto> _portalDeals = [];
+
   // Store the category future so it's only created once (not on every rebuild)
   late Future<List<CategoryDto>> _categoryFuture;
 
@@ -66,8 +70,8 @@ class ProductListWidgetState extends State<ProductListWidget> {
     _initializeSharedPreferences();
     _setScrollListener();
     _categoryFuture = _loadCategoryList();
-    // Load products immediately — don't wait for categories or next frame
     Future.microtask(() => _loadProductList());
+    AdsService().getDeals().then((d) { if (mounted) setState(() => _portalDeals = d); });
   }
 
   @override
@@ -426,11 +430,28 @@ class ProductListWidgetState extends State<ProductListWidget> {
     );
   }
 
+  PortalDealDto? _dealFor(ProductDto p) {
+    final pid = p.id ?? -1;
+    final brand = p.brand?.name ?? '';
+    final cat = p.category?.name ?? '';
+    for (final d in _portalDeals) {
+      final bool match = d.type == 'BULK'
+          // For list view, ignore minQty — show badge to entice the customer
+          ? d.items.any((i) => i.productId == pid ||
+              (i.refValue != null &&
+               i.refValue!.toUpperCase() == brand.toUpperCase()))
+          : d.appliesTo(productId: pid, brandName: brand, category: cat);
+      if (match) return d;
+    }
+    return null;
+  }
+
   Widget _buildImageView(ProductDto productDt) {
     final String imageUrl = (productDt.productImages?.isNotEmpty == true)
         ? (productDt.productImages!.first.url ?? '')
         : '';
     final bool hasImage = imageUrl.isNotEmpty && imageUrl.startsWith('http');
+    final deal = _dealFor(productDt);
     return Container(
       margin: const EdgeInsets.only(right: 20),
       decoration: BoxDecoration(
@@ -442,9 +463,30 @@ class ProductListWidgetState extends State<ProductListWidget> {
           margin: const EdgeInsets.all(3),
           width: 57,
           height: 57,
-          child: hasImage
-            ? MandelNetworkImage(url: imageUrl, width: 57, height: 57)
-            : Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
+          child: Stack(
+            children: [
+              hasImage
+                ? MandelNetworkImage(url: imageUrl, width: 57, height: 57)
+                : Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
+              if (deal != null)
+                Positioned(
+                  bottom: 0, left: 0, right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFf0560f), Color(0xFFe03a00)]),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(deal.badge,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white, fontSize: 8,
+                        fontWeight: FontWeight.w900, height: 1.2)),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

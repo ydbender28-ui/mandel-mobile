@@ -80,9 +80,9 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
           children: [
             _header(),
             _quickActions(context),
-            _section('Deals'),
+            _section('Promotions'),
             SizedBox(
-              height: 160,
+              height: 200,
               child: const DealSwiperWidget()),
             _section('Recent Orders'),
             SizedBox(
