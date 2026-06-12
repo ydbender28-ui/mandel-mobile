@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mandel_mobile_app/db/entity/return_item_entity.dart';
 import 'package:mandel_mobile_app/db/entity/return_master_entity.dart';
 import 'package:mandel_mobile_app/db/repository/return_item_repository.dart';
@@ -49,53 +50,89 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
     super.dispose();
   }
 
+  static const _h1     = Color(0xFF0C0F1E);
+  static const _h2     = Color(0xFF1B2860);
+  static const _indigo = Color(0xFF4F46E5);
+  static const _bg     = Color(0xFFEEF0FA);
+
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light
+        .copyWith(statusBarColor: Colors.transparent));
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Return Cart',
-              style: TextStyle(fontSize: 24),
+      backgroundColor: _bg,
+      body: Column(children: [
+        _buildHeader(),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildReturnDetailTitle(),
+                _buildOrderList(context),
+                _buildSummary(),
+                _buildPlaceOrderButton(),
+                const SizedBox(height: 24),
+              ],
             ),
-            FutureBuilder(
-              future: ReturnMasterRepository().getLastUpdatedTimeStamp(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Text('Last Updated: ${snapshot.data}',
-                      style: const TextStyle(fontSize: 12));
-                }
-
-                if (!snapshot.hasData) {
-                  return const Text('Empty returns',
-                      style: TextStyle(fontSize: 12));
-                }
-
-                if (snapshot.hasError) {
-                  return const Text('Some thing went wrong',
-                      style: TextStyle(fontSize: 12));
-                }
-
-                return const SizedBox();
-              },
-            )
-          ],
+          ),
         ),
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildReturnDetailTitle(),
-            _buildOrderList(context),
-            _buildSummary(),
-            _buildPlaceOrderButton()
-          ],
+      ]),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [_h1, _h2],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
       ),
+      child: Stack(children: [
+        Positioned(right: -30, top: -30,
+          child: Container(width: 130, height: 130,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _indigo.withOpacity(0.1)))),
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('Return Cart',
+                    style: TextStyle(color: Colors.white, fontSize: 22,
+                        fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+                  FutureBuilder<String?>(
+                    future: ReturnMasterRepository().getLastUpdatedTimeStamp(),
+                    builder: (_, snap) => Text(
+                      snap.data != null ? 'Updated ${snap.data}' : 'Empty returns',
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.5), fontSize: 11)),
+                  ),
+                ]),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(
+                      builder: (_) => const MainScreenWidget(defaultIndex: 0)),
+                  (r) => false),
+                child: Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10)),
+                  child: const Icon(Icons.close_rounded,
+                      size: 18, color: Colors.white),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ]),
     );
   }
 
