@@ -6,12 +6,9 @@ import 'package:mandel_mobile_app/db/entity/order_item_entity.dart';
 import 'package:mandel_mobile_app/db/entity/order_master_entity.dart';
 import 'package:mandel_mobile_app/db/repository/order_master_repository.dart';
 import 'package:mandel_mobile_app/db/repository/order_repository.dart';
-import 'package:mandel_mobile_app/db/repository/user_master_repository.dart';
 import 'package:mandel_mobile_app/layout/bottom_sheet_dialog/clear_cart_confirmation_dialog.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/common_cart_number_picker.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
-import 'package:mandel_mobile_app/model/order_dto.dart';
-import 'package:mandel_mobile_app/model/user_dto.dart';
 import 'package:mandel_mobile_app/service/order_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
@@ -467,27 +464,14 @@ class _CartWidgetState extends State<CartWidget>
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isProcessing = true);
     try {
-      final userId = await UserMasterRepository().getUserId();
-      final total  = await OrderRepository().getPeoGrandTotal();
-      final items  = await OrderRepository().getOrderItemList();
-      final date   = _dateCtrl.text.isNotEmpty
-          ? DateFormat(CommonConstants.usDateFormat).parse(_dateCtrl.text)
-          : DateTime.now();
-
-      final dto = OrderDto(
-        user: UserDto(id: userId),
-        orderItems: items,
-        orderState: 'PENDING',
-        orderSource: 'WEB',
-        deliveryDate: date,
-        notes: _noteCtrl.text,
-        total: total,
-      );
-
-      final Response resp = await OrderService().postOrder(dto);
+      final cartItems = await OrderRepository().getOrderList();
+      final Response resp = await OrderService().submitCartOrder(
+        cartItems, _noteCtrl.text);
       if (!mounted) return;
 
-      if (resp.statusCode == 201) {
+      final ok = resp.statusCode == 200 &&
+          (resp.data is Map && resp.data['ok'] == true);
+      if (ok) {
         showSuccessMessage(
             message: 'Order placed successfully!', context: context);
         await OrderRepository().clearOrderItems();
@@ -496,12 +480,13 @@ class _CartWidgetState extends State<CartWidget>
           MaterialPageRoute(builder: (_) => const MainScreenWidget(defaultIndex: 0)),
           (r) => false);
       } else {
-        showErrorMessage(
-            message: 'Order failed. Please contact support.', context: context);
+        final errMsg = (resp.data is Map ? resp.data['error'] : null)
+            ?? 'Order failed. Please contact support.';
+        showErrorMessage(message: errMsg, context: context);
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
-        showErrorMessage(message: 'Something went wrong.', context: context);
+        showErrorMessage(message: 'Something went wrong: $e', context: context);
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
