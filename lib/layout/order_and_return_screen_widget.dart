@@ -363,6 +363,8 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                   //         color: CommonCustomColor.defaultTextColor))
                 ],
               ),
+              if (product.expiryDate != null && product.expiryDate!.isNotEmpty)
+                _buildExpiryRow(product.expiryDate!),
               _buildDealList(product)
             ],
           ),
@@ -729,6 +731,55 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         )
       ],
+    );
+  }
+
+  Widget _buildExpiryRow(String expiryDate) {
+    // Try to parse the expiry date to calculate days remaining
+    int? daysLeft;
+    try {
+      final parts = expiryDate.split(' ');
+      if (parts.length == 3) {
+        // Format: "Jun 1, 2025" → DateTime
+        final months = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,
+                        'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12};
+        final month = months[parts[0]];
+        final day = int.tryParse(parts[1].replaceAll(',', ''));
+        final year = int.tryParse(parts[2]);
+        if (month != null && day != null && year != null) {
+          final expiry = DateTime(year, month, day);
+          daysLeft = expiry.difference(DateTime.now()).inDays;
+        }
+      }
+    } catch (_) {}
+
+    Color labelColor;
+    if (daysLeft != null && daysLeft <= 30) {
+      labelColor = const Color(0xFFdc2626);
+    } else if (daysLeft != null && daysLeft <= 90) {
+      labelColor = const Color(0xFFd97706);
+    } else {
+      labelColor = const Color(0xFF16a34a);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        children: [
+          const Text('Expires : ',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: CommonCustomColor.menuItemColor)),
+          Text(
+            daysLeft != null ? '$expiryDate  (${daysLeft}d left)' : expiryDate,
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: labelColor),
+          ),
+        ],
+      ),
     );
   }
 
