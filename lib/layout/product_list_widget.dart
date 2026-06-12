@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -337,114 +338,136 @@ class ProductListWidgetState extends State<ProductListWidget> {
         ));
   }
 
-  //
-  ///This method can be used for build bill list
+  static const _bgGrad = LinearGradient(
+    colors: [Color(0xFF07091A), Color(0xFF111B4A), Color(0xFF07091A)],
+    stops: [0.0, 0.55, 1.0],
+    begin: Alignment.topCenter, end: Alignment.bottomCenter,
+  );
+
   Widget _buildProductList() {
     if (_initProductFetching) {
-      return Shimmer.fromColors(
-          baseColor: Colors.grey.shade300,
-          highlightColor: Colors.grey.shade100,
-          child: _buildShimmerListView());
+      return Container(
+        decoration: const BoxDecoration(gradient: _bgGrad),
+        child: Shimmer.fromColors(
+          baseColor: const Color(0xFF1A2455),
+          highlightColor: const Color(0xFF2A3870),
+          child: _buildShimmerListView()),
+      );
     }
 
     if (productList.isNotEmpty) {
-      return ListView.separated(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.only(
-            top: 6,
-            bottom: MediaQuery.of(context).padding.bottom + 80,
-          ),
-          controller: _scrollController,
-          itemCount: productList.length + 1,
-          separatorBuilder: (context, index) => const SizedBox.shrink(),
-          itemBuilder: (BuildContext context, int index) {
-            if (index < productList.length) {
-              return _buildListItem(productList[index], index);
-            } else {
+      return Container(
+        decoration: const BoxDecoration(gradient: _bgGrad),
+        child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(
+              top: 10,
+              bottom: MediaQuery.of(context).padding.bottom + 80,
+            ),
+            controller: _scrollController,
+            itemCount: productList.length + 1,
+            separatorBuilder: (_, __) => const SizedBox.shrink(),
+            itemBuilder: (BuildContext context, int index) {
+              if (index < productList.length) {
+                return _buildListItem(productList[index], index);
+              }
               return Visibility(
                 visible: _hasMore,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32.0),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32.0),
                   child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                    child: CircularProgressIndicator(
+                      color: Colors.white.withOpacity(0.5))),
                 ),
               );
-            }
-          });
+            }),
+      );
     } else {
-      return Column(
-        children: [
-          Container(
-            alignment: Alignment.center,
-            child: Image.asset(
-              'assets/images/mandel_empty_state.png',
-              width: 200,
-              height: 200,
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.only(bottom: 10.0),
-            child: const Text(
-              'No data Found!',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-            ),
-          ),
-          const Text(
-            'Try reset the filters and apply.!',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-          )
-        ],
+      return Container(
+        decoration: const BoxDecoration(gradient: _bgGrad),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/mandel_empty_state.png',
+              width: 180, height: 180, color: Colors.white.withOpacity(0.25),
+              colorBlendMode: BlendMode.modulate),
+            const SizedBox(height: 12),
+            const Text('No products found.',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white)),
+            const SizedBox(height: 6),
+            Text('Try resetting your filters',
+              style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.5))),
+          ],
+        ),
       );
     }
   }
 
   Widget _buildListItem(ProductDto productDto, int index) {
     return Container(
-      margin: const EdgeInsets.only(left: 10, right: 10, bottom: 5, top: 5),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(
-          color: const Color(0xFF0D1135).withOpacity(0.07),
-          blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          _storeSearchHistory();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OrderAndReturnScreenWidget(
-                productDto: productDto,
-                index: index,
-                fromOrder: false,
-                showAddToCart: widget.productDetailsOptions.showAddToCart,
-                showReturn: widget.productDetailsOptions.showReturn,
-                onClose: () {
-                  _streamControllers.sink.add('done');
-                },
+      margin: const EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.14),
+                  Colors.white.withOpacity(0.06),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.20), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4F46E5).withOpacity(0.18),
+                  blurRadius: 24, offset: const Offset(0, 8)),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 10, offset: const Offset(0, 3)),
+              ],
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              splashColor: Colors.white.withOpacity(0.08),
+              highlightColor: Colors.white.withOpacity(0.04),
+              onTap: () {
+                _storeSearchHistory();
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => OrderAndReturnScreenWidget(
+                    productDto: productDto,
+                    index: index,
+                    fromOrder: false,
+                    showAddToCart: widget.productDetailsOptions.showAddToCart,
+                    showReturn: widget.productDetailsOptions.showReturn,
+                    onClose: () { _streamControllers.sink.add('done'); },
+                  ),
+                ));
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildImageView(productDto),
+                        _buildInformation(productDto),
+                        const Spacer(flex: 1),
+                        _buildPricing(productDto),
+                      ],
+                    ),
+                    _buildDealList(productDto),
+                  ],
+                ),
               ),
             ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildImageView(productDto),
-                  _buildInformation(productDto),
-                  const Spacer(flex: 1),
-                  _buildPricing(productDto)
-                ],
-              ),
-              _buildDealList(productDto)
-            ],
           ),
         ),
       ),
@@ -494,15 +517,19 @@ class ProductListWidgetState extends State<ProductListWidget> {
       decoration: BoxDecoration(
           border: Border.all(
             color: onSale
-                ? const Color(0xFFdc2626).withOpacity(0.5)
-                : const Color(0xFFE2E8F0)),
-          borderRadius: BorderRadius.circular(12)),
+                ? const Color(0xFFdc2626).withOpacity(0.6)
+                : Colors.white.withOpacity(0.18),
+            width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8, offset: const Offset(0, 3))]),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(11),
+        borderRadius: BorderRadius.circular(13),
         child: Container(
           width: 70,
           height: 70,
-          color: const Color(0xFFF8FAFC),
+          color: Colors.white.withOpacity(0.08),
           child: Stack(
             children: [
               hasImage
@@ -577,26 +604,29 @@ class ProductListWidgetState extends State<ProductListWidget> {
         children: [
           Text(
             productDt.getProductName(),
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 14, fontWeight: FontWeight.w700,
+              color: Colors.white, height: 1.3),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
+          const SizedBox(height: 3),
           Text(
             productDt.getCategoryName(),
-            style: const TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.55)),
             softWrap: false,
             overflow: TextOverflow.ellipsis,
           ),
           Row(
             children: [
-              Text(productDt.getBrandName(),
-                  style: const TextStyle(fontSize: 12),
-                  softWrap: false,
-                  overflow: TextOverflow.ellipsis),
+              Flexible(
+                child: Text(productDt.getBrandName(),
+                  style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.45)),
+                  softWrap: false, overflow: TextOverflow.ellipsis),
+              ),
               Text(productDt.getSize(),
-                  style: const TextStyle(fontSize: 12),
-                  softWrap: false,
-                  overflow: TextOverflow.ellipsis)
+                style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.45)),
+                softWrap: false, overflow: TextOverflow.ellipsis),
             ],
           )
         ],
@@ -618,31 +648,30 @@ class ProductListWidgetState extends State<ProductListWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Strikethrough original price
         if (showStrike)
           Text(hasSale ? regularPrice : originalPrice,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12, fontWeight: FontWeight.w500,
-              color: Color(0xFF9AA3C2),
-              decoration: TextDecoration.lineThrough)),
-        // Main price (sale price in red, otherwise normal)
+              color: Colors.white.withOpacity(0.35),
+              decoration: TextDecoration.lineThrough,
+              decorationColor: Colors.white.withOpacity(0.35))),
         Text('\$$displayPrice',
           style: TextStyle(
-            fontSize: 18, fontWeight: FontWeight.w700,
-            color: hasSale ? const Color(0xFFdc2626) : const Color(0xFF0D1135))),
-        // Expiry date chip
+            fontSize: 20, fontWeight: FontWeight.w800,
+            color: hasSale ? const Color(0xFFFC8181) : Colors.white,
+            shadows: hasSale ? [Shadow(color: const Color(0xFFFC8181).withOpacity(0.5), blurRadius: 10)] : null)),
         if (productDto.expiryDate != null && productDto.expiryDate!.isNotEmpty)
           Container(
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF2F2),
+              color: const Color(0xFFdc2626).withOpacity(0.22),
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: const Color(0xFFFCA5A5))),
+              border: Border.all(color: const Color(0xFFFC8181).withOpacity(0.45))),
             child: Text('EXP ${productDto.expiryDate!}',
               style: const TextStyle(
                 fontSize: 9, fontWeight: FontWeight.w700,
-                color: Color(0xFFdc2626))),
+                color: Color(0xFFFC8181))),
           ),
       ],
     );
@@ -650,61 +679,20 @@ class ProductListWidgetState extends State<ProductListWidget> {
 
   Widget _buildShimmerListView() {
     return ListView.separated(
-        padding: const EdgeInsets.all(8),
-        itemCount: 15,
-        separatorBuilder: (context, index) {
-          return const Divider(
-            indent: 15.0,
-            endIndent: 15.0,
-          );
-        },
-        itemBuilder: (BuildContext context, int index) {
-          return _buildShimmerLineItem();
-        });
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
+        itemCount: 10,
+        separatorBuilder: (_, __) => const SizedBox.shrink(),
+        itemBuilder: (_, __) => _buildShimmerLineItem());
   }
 
   Widget _buildShimmerLineItem() {
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10, top: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(right: 20),
-            width: 57,
-            height: 57,
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(5.0))),
-          ),
-          SizedBox(
-            width: 193,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(bottom: 5.0, top: 5.0),
-                  decoration: const BoxDecoration(color: Colors.white),
-                  width: 200,
-                  height: 10,
-                ),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10.0),
-                  decoration: const BoxDecoration(color: Colors.white),
-                  width: 120,
-                  height: 10,
-                ),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10.0),
-                  decoration: const BoxDecoration(color: Colors.white),
-                  width: 50,
-                  height: 30,
-                )
-              ],
-            ),
-          ),
-          const Spacer(flex: 1),
-        ],
+      margin: const EdgeInsets.only(bottom: 10),
+      height: 94,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.5)),
       ),
     );
   }
@@ -714,36 +702,25 @@ class ProductListWidgetState extends State<ProductListWidget> {
 
     if (null != productDto.deal) {
       for (var element in productDto.deal!) {
-        deals.add(DottedBorder(
-          borderType: BorderType.RRect,
-          radius: const Radius.circular(8),
-          color: CommonCustomColor.pendingColor,
-          strokeWidth: 1,
-          child: Container(
-            decoration: BoxDecoration(
-                color: CommonCustomColor.dealColor,
-                borderRadius: BorderRadius.circular(8)),
-            child: Row(
-              children: [
-                Container(
-                    margin: const EdgeInsets.only(
-                        left: 15, right: 2.5, top: 10, bottom: 10),
-                    child: const Icon(
-                      Icons.local_offer_outlined,
-                      color: CommonCustomColor.pendingColor,
-                    )),
-                Container(
-                  margin: const EdgeInsets.all(12.5),
-                  child: Text(
-                    element.description!,
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: CommonCustomColor.menuItemColor),
-                  ),
-                )
-              ],
-            ),
+        deals.add(Container(
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: const Color(0xFFf0560f).withOpacity(0.18),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFf0560f).withOpacity(0.45)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.local_offer_rounded,
+                color: Color(0xFFfb923c), size: 11),
+              const SizedBox(width: 5),
+              Text(element.description!,
+                style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w700,
+                  color: Color(0xFFfb923c))),
+            ],
           ),
         ));
       }
@@ -752,12 +729,10 @@ class ProductListWidgetState extends State<ProductListWidget> {
     return Visibility(
       visible: productDto.isDealExist(),
       child: Container(
-        margin: const EdgeInsets.only(top: 15),
+        margin: const EdgeInsets.only(top: 10),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [...deals],
-          ),
+          child: Row(children: [...deals]),
         ),
       ),
     );
