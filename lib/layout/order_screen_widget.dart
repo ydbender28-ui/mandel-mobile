@@ -113,7 +113,7 @@ class _OrderScreenWidgetState extends State<OrderScreenWidget>
               ]),
             ),
             const SizedBox(height: 16),
-            // custom tab bar
+            // custom tab bar — scrollable so it never overflows on narrow phones
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -123,7 +123,8 @@ class _OrderScreenWidgetState extends State<OrderScreenWidget>
                   borderRadius: BorderRadius.circular(12)),
                 child: TabBar(
                   controller: _tab,
-                  isScrollable: false,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.fill,
                   indicator: BoxDecoration(
                     color: _indigo,
                     borderRadius: BorderRadius.circular(10)),
@@ -135,10 +136,11 @@ class _OrderScreenWidgetState extends State<OrderScreenWidget>
                       fontSize: 11, fontWeight: FontWeight.w700),
                   unselectedLabelStyle: const TextStyle(
                       fontSize: 11, fontWeight: FontWeight.w500),
+                  labelPadding: EdgeInsets.zero,
                   tabs: _tabs.map((t) => Tab(
                     height: 38,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(t, textAlign: TextAlign.center),
                     ),
                   )).toList(),
