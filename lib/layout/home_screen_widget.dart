@@ -10,12 +10,15 @@ import 'package:mandel_mobile_app/layout/common_custom_widget/multi_action_confi
 import 'package:mandel_mobile_app/layout/deal_swiper_widget.dart';
 import 'package:mandel_mobile_app/layout/recent_orders_swiper_widget.dart';
 import 'package:mandel_mobile_app/model/order_dto.dart';
+import 'package:mandel_mobile_app/model/portal_sale_dto.dart';
 import 'package:mandel_mobile_app/model/product_details_options.dart';
 import 'package:mandel_mobile_app/model/product_search_arguments.dart';
 import 'package:mandel_mobile_app/model/scanner_arguments.dart';
 import 'package:mandel_mobile_app/model/user_dto.dart';
 import 'package:mandel_mobile_app/service/order_service.dart';
+import 'package:mandel_mobile_app/service/sales_service.dart';
 import 'package:mandel_mobile_app/utility/barcode_scanner_utility.dart';
+import 'package:mandel_mobile_app/utility/cart_state.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 import 'package:mandel_mobile_app/utility/message_utility.dart';
@@ -39,6 +42,8 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
   static const _bg     = Color(0xFFEEF0FA);
   static const _textHi = Color(0xFF0D1135);
 
+  List<PortalSaleDto> _sales = [];
+
   Future<String> _getCustomerName() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('mandel_portal_token') ?? '';
@@ -57,6 +62,15 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _init();
+  }
+
+  Future<void> _init() async {
+    // Load cart from server (restores cross-device cart after login)
+    await CartState.loadFromServer();
+    // Load active sales for the sales strip
+    final sales = await SalesService().getSales();
+    if (mounted) setState(() => _sales = sales);
   }
 
   @override
@@ -84,6 +98,12 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
             SizedBox(
               height: 200,
               child: const DealSwiperWidget()),
+            if (_sales.isNotEmpty) ...[
+              _section('Sales'),
+              SizedBox(
+                height: 120,
+                child: _salesStrip()),
+            ],
             _section('Recent Orders'),
             SizedBox(
               height: 160,
@@ -197,6 +217,99 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
                 fontSize: 11, fontWeight: FontWeight.w700,
                 color: _textHi),
               overflow: TextOverflow.ellipsis),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── sales horizontal strip ───────────────────────────────────────────────
+
+  Widget _salesStrip() {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      itemCount: _sales.length,
+      itemBuilder: (_, i) => _saleCard(_sales[i]),
+    );
+  }
+
+  List<Color> _parseSaleGradient(String? css) {
+    if (css == null || css.isEmpty) return [const Color(0xFFdc2626), const Color(0xFF991b1b)];
+    final colors = RegExp(r'#[0-9a-fA-F]{6}').allMatches(css).map((m) {
+      try { return Color(int.parse('FF${m.group(0)!.replaceFirst('#', '')}', radix: 16)); }
+      catch (_) { return null; }
+    }).whereType<Color>().toList();
+    if (colors.length >= 2) return [colors[0], colors[1]];
+    if (colors.length == 1) return [colors[0], colors[0]];
+    return [const Color(0xFFdc2626), const Color(0xFF991b1b)];
+  }
+
+  Widget _saleCard(PortalSaleDto sale) {
+    final colors   = _parseSaleGradient(sale.bannerGradient);
+    final daysLeft = sale.endDate != null
+        ? sale.endDate!.difference(DateTime.now()).inDays
+        : -1;
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, CommonConstants.searchScreenUrl,
+          arguments: ProductSearchArguments(
+              filters: {'isOnSale': true},
+              productDetailsOptions: ProductDetailsOptions(showAddToCart: true, showReturn: false))),
+      child: Container(
+        width: 220,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: colors[0].withOpacity(0.35), blurRadius: 12, offset: const Offset(0, 4))],
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(6)),
+                child: const Text('SALE', style: TextStyle(
+                  color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.4)),
+              ),
+              if (daysLeft >= 0 && daysLeft <= 7) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6)),
+                  child: Text(
+                    daysLeft == 0 ? 'Ends Today' : 'Ends in ${daysLeft}d',
+                    style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 9, fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ]),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(sale.title,
+                  maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800, height: 1.2)),
+                if (sale.description != null && sale.description!.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(sale.description!,
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11)),
+                ],
+                const SizedBox(height: 8),
+                const Row(children: [
+                  Text('Shop Now', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+                  SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 12),
+                ]),
+              ],
+            ),
           ],
         ),
       ),

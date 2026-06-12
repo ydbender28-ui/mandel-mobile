@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:mandel_mobile_app/db/entity/order_item_entity.dart';
+import 'package:mandel_mobile_app/service/cart_sync_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CartState {
   static const _key = 'mandel_cart_v1';
   static final List<OrderItemEntity> _items = [];
+  static Timer? _syncTimer;
 
   static List<OrderItemEntity> get items => List.unmodifiable(_items);
 
@@ -19,15 +22,47 @@ class CartState {
       _items.add(item);
     }
     _save();
+    _scheduleSync();
   }
 
   static void removeItem(int productId) {
     _items.removeWhere((i) => i.productId == productId);
     _save();
+    _scheduleSync();
   }
 
   static void clear() {
     _items.clear();
+    _save();
+    CartSyncService().clearServerCart();
+    _syncTimer?.cancel();
+  }
+
+  // Debounced push: waits 2 s after last change before syncing to server
+  static void _scheduleSync() {
+    _syncTimer?.cancel();
+    _syncTimer = Timer(const Duration(seconds: 2), () {
+      CartSyncService().pushCart(_items.toList());
+    });
+  }
+
+  /// Called on app start after auth: replaces local cart with server cart if server has items.
+  static Future<void> loadFromServer() async {
+    final serverItems = await CartSyncService().pullCart();
+    if (serverItems.isEmpty) return;
+    _items.clear();
+    for (final item in serverItems) {
+      _items.add(OrderItemEntity(
+        productId:    item['productId'] as int?,
+        productName:  item['productName'] as String?,
+        brandName:    item['brandName'] as String?,
+        categoryName: item['categoryName'] as String?,
+        size:         item['sizeName'] as String?,
+        qty:          item['qty'] as int?,
+        unitPrice:    (item['unitPrice'] as num?)?.toDouble(),
+        subTotal:     (item['subTotal']  as num?)?.toDouble(),
+      ));
+    }
     _save();
   }
 

@@ -29,6 +29,7 @@ class ProductDto {
   bool? isSingle;
   bool? isNew;
   int? singleCount;
+  String? expiryDate;
 
   ProductDto(
       {this.id,
@@ -63,6 +64,7 @@ class ProductDto {
     isSingle = json['isSingle'];
     singleCount = json['singleCount'];
     isNew = json['isNew'];
+    expiryDate = json['expiryDate'] as String?;
 
     if (json['brand'] != null) {
       brand = BrandDto.fromJson(json['brand']);

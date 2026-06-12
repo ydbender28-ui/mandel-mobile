@@ -15,7 +15,9 @@ import 'package:mandel_mobile_app/service/category_service.dart';
 import 'package:mandel_mobile_app/service/product_service.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/mandel_network_image.dart';
 import 'package:mandel_mobile_app/model/portal_deal_dto.dart';
+import 'package:mandel_mobile_app/model/portal_sale_dto.dart';
 import 'package:mandel_mobile_app/service/ads_service.dart';
+import 'package:mandel_mobile_app/service/sales_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -59,6 +61,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
   List<ProductDto> productList = [];
 
   List<PortalDealDto> _portalDeals = [];
+  List<PortalSaleDto> _portalSales = [];
 
   // Store the category future so it's only created once (not on every rebuild)
   late Future<List<CategoryDto>> _categoryFuture;
@@ -72,6 +75,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
     _categoryFuture = _loadCategoryList();
     Future.microtask(() => _loadProductList());
     AdsService().getDeals().then((d) { if (mounted) setState(() => _portalDeals = d); });
+    SalesService().getSales().then((s) { if (mounted) setState(() => _portalSales = s); });
   }
 
   @override
@@ -430,6 +434,19 @@ class ProductListWidgetState extends State<ProductListWidget> {
     );
   }
 
+  // Returns the sale item (with its salePrice) if this product is in any active sale.
+  PortalSaleItemDto? _saleEntryFor(ProductDto p) {
+    final pid = p.id ?? -1;
+    for (final sale in _portalSales) {
+      final entry = sale.salePriceFor(pid);
+      if (entry != null) {
+        return PortalSaleItemDto(
+          id: 0, productId: pid, salePrice: entry);
+      }
+    }
+    return null;
+  }
+
   PortalDealDto? _dealFor(ProductDto p) {
     final pid = p.id ?? -1;
     final brand = p.brand?.name ?? '';
@@ -451,11 +468,16 @@ class ProductListWidgetState extends State<ProductListWidget> {
         ? (productDt.productImages!.first.url ?? '')
         : '';
     final bool hasImage = imageUrl.isNotEmpty && imageUrl.startsWith('http');
-    final deal = _dealFor(productDt);
+    final deal      = _dealFor(productDt);
+    final salePriceEntry = _saleEntryFor(productDt);
+    final bool onSale = salePriceEntry != null;
     return Container(
       margin: const EdgeInsets.only(right: 20),
       decoration: BoxDecoration(
-          border: Border.all(color: CommonCustomColor.menuItemColor.withOpacity(0.5)),
+          border: Border.all(
+            color: onSale
+                ? const Color(0xFFdc2626).withOpacity(0.6)
+                : CommonCustomColor.menuItemColor.withOpacity(0.5)),
           borderRadius: BorderRadius.circular(10)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15),
@@ -468,7 +490,25 @@ class ProductListWidgetState extends State<ProductListWidget> {
               hasImage
                 ? MandelNetworkImage(url: imageUrl, width: 57, height: 57)
                 : Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
-              if (deal != null)
+              // Sale badge (red) takes priority over deal badge
+              if (onSale)
+                Positioned(
+                  bottom: 0, left: 0, right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFdc2626), Color(0xFF991b1b)]),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('SALE',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white, fontSize: 8,
+                        fontWeight: FontWeight.w900, letterSpacing: 0.8)),
+                  ),
+                )
+              else if (deal != null)
                 Positioned(
                   bottom: 0, left: 0, right: 0,
                   child: Container(
@@ -527,26 +567,45 @@ class ProductListWidgetState extends State<ProductListWidget> {
   }
 
   Widget _buildPricing(ProductDto productDto) {
+    final saleEntry = _saleEntryFor(productDto);
+    final hasSale   = saleEntry != null;
+    final hasDeal   = !hasSale && productDto.isDealExist();
+    final showStrike = hasSale || hasDeal;
+    final originalPrice = productDto.getNonDiscountedUnitPrice();
+    final regularPrice  = productDto.getUnitPrice();
+    final displayPrice  = hasSale
+        ? saleEntry!.salePrice.toStringAsFixed(2)
+        : regularPrice;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Visibility(
-          visible: productDto.isDealExist(),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 5),
-            child: Center(
-                child: Text(productDto.getNonDiscountedUnitPrice(),
-                    style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: CommonCustomColor.pendingColor,
-                        decoration: TextDecoration.lineThrough))),
+        // Strikethrough original price
+        if (showStrike)
+          Text(hasSale ? regularPrice : originalPrice,
+            style: const TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w500,
+              color: Color(0xFF9AA3C2),
+              decoration: TextDecoration.lineThrough)),
+        // Main price (sale price in red, otherwise normal)
+        Text('\$$displayPrice',
+          style: TextStyle(
+            fontSize: 18, fontWeight: FontWeight.w700,
+            color: hasSale ? const Color(0xFFdc2626) : const Color(0xFF0D1135))),
+        // Expiry date chip
+        if (productDto.expiryDate != null && productDto.expiryDate!.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFFFCA5A5))),
+            child: Text('EXP ${productDto.expiryDate!}',
+              style: const TextStyle(
+                fontSize: 9, fontWeight: FontWeight.w700,
+                color: Color(0xFFdc2626))),
           ),
-        ),
-        Center(
-          child: Text(productDto.getUnitPrice(),
-              style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-        )
       ],
     );
   }
