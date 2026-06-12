@@ -27,9 +27,8 @@ class MandelNetworkImage extends StatefulWidget {
 
 class _MandelNetworkImageState extends State<MandelNetworkImage>
     with AuthSupportUtility {
-  static final _cache = <String, Uint8List?>{};
+  static final _cache = <String, Uint8List>{};
   static const _maxCacheSize = 200;
-  static final _sentinel = Uint8List(0);
 
   Uint8List? _bytes;
   bool _loading = true;
@@ -65,6 +64,7 @@ class _MandelNetworkImageState extends State<MandelNetworkImage>
         widget.url,
         options: Options(
           responseType: ResponseType.bytes,
+          receiveTimeout: const Duration(seconds: 15),
           headers: {
             CommonConstants.authorization: '${CommonConstants.bearer}$token',
           },
@@ -72,12 +72,14 @@ class _MandelNetworkImageState extends State<MandelNetworkImage>
         ),
       );
       if (resp.data == null || resp.data!.isEmpty) {
-        _storeAndSet(widget.url, _sentinel);
+        // Don't cache failures — let next render retry
+        if (mounted) setState(() { _bytes = null; _loading = false; });
         return;
       }
       _storeAndSet(widget.url, Uint8List.fromList(resp.data!));
     } catch (_) {
-      _storeAndSet(widget.url, _sentinel);
+      // Don't cache network failures — let next render retry
+      if (mounted) setState(() { _bytes = null; _loading = false; });
     }
   }
 
