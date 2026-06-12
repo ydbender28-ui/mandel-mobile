@@ -4,6 +4,7 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/service/navigation_service.dart';
 import 'package:mandel_mobile_app/service/telemetry_service.dart';
+import 'package:mandel_mobile_app/utility/cart_state.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:mandel_mobile_app/utility/route_generator.dart';
@@ -22,7 +23,9 @@ void backgroundFetchTask(HeadlessTask task) async {
   }
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await CartState.load();
   runApp(const MyApp());
   BackgroundFetch.registerHeadlessTask(backgroundFetchTask);
 }
