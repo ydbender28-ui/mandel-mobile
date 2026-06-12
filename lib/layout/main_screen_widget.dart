@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/cart_widget.dart';
 import 'package:mandel_mobile_app/layout/home_screen_widget.dart';
@@ -18,9 +19,8 @@ class MainScreenWidget extends StatefulWidget {
 class _MainScreenWidgetState extends State<MainScreenWidget>
     with WidgetsBindingObserver, CommonUtility {
 
-  static const _primary   = Color(0xFF4F46E5);
-  static const _navBg     = Colors.white;
-  static const _unsel     = Color(0xFF9AA3C2);
+  static const _primary   = Color(0xFF818CF8);   // lighter indigo for dark bg
+  static const _unsel     = Color(0xFF4B5589);
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +30,8 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
         length: 6,
         initialIndex: widget.defaultIndex,
         child: Scaffold(
+          backgroundColor: const Color(0xFF07091A),
+          extendBody: true,
           body: const TabBarView(
             physics: NeverScrollableScrollPhysics(),
             children: [
@@ -41,37 +43,38 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
               ProfileScreenWidget(isFromHomePage: true),
             ],
           ),
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              color: _navBg,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF0D1135).withOpacity(0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4)),
-              ],
-            ),
-            child: SafeArea(
-              top: false,
-              child: TabBar(
-                indicatorColor: Colors.transparent,
-                dividerColor: Colors.transparent,
-                labelColor: _primary,
-                unselectedLabelColor: _unsel,
-                labelStyle: const TextStyle(
-                    fontSize: 10, fontWeight: FontWeight.w700,
-                    fontFamily: 'Nunito'),
-                unselectedLabelStyle: const TextStyle(
-                    fontSize: 10, fontWeight: FontWeight.w500,
-                    fontFamily: 'Nunito'),
-                tabs: const [
-                  _NavTab(icon: Icons.home_rounded,       outlineIcon: Icons.home_outlined,              label: 'Home'),
-                  _NavTab(icon: Icons.storefront_rounded, outlineIcon: Icons.storefront_outlined,        label: 'Products'),
-                  _NavTab(icon: Icons.receipt_rounded,    outlineIcon: Icons.receipt_outlined,           label: 'Orders'),
-                  _NavTab(icon: Icons.shopping_bag_rounded, outlineIcon: Icons.shopping_bag_outlined,    label: 'Cart'),
-                  _NavTab(icon: Icons.undo_rounded,       outlineIcon: Icons.undo_outlined,              label: 'Returns'),
-                  _NavTab(icon: Icons.person_rounded,     outlineIcon: Icons.person_outline_rounded,     label: 'Profile'),
-                ],
+          bottomNavigationBar: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF07091A).withOpacity(0.82),
+                  border: Border(top: BorderSide(
+                    color: Colors.white.withOpacity(0.10), width: 0.5)),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: TabBar(
+                    indicatorColor: Colors.transparent,
+                    dividerColor: Colors.transparent,
+                    labelColor: _primary,
+                    unselectedLabelColor: _unsel,
+                    labelStyle: const TextStyle(
+                        fontSize: 10, fontWeight: FontWeight.w700,
+                        fontFamily: 'Nunito'),
+                    unselectedLabelStyle: const TextStyle(
+                        fontSize: 10, fontWeight: FontWeight.w500,
+                        fontFamily: 'Nunito'),
+                    tabs: const [
+                      _NavTab(icon: Icons.home_rounded,         outlineIcon: Icons.home_outlined,           label: 'Home'),
+                      _NavTab(icon: Icons.storefront_rounded,   outlineIcon: Icons.storefront_outlined,     label: 'Products'),
+                      _NavTab(icon: Icons.receipt_rounded,      outlineIcon: Icons.receipt_outlined,        label: 'Orders'),
+                      _NavTab(icon: Icons.shopping_bag_rounded, outlineIcon: Icons.shopping_bag_outlined,   label: 'Cart'),
+                      _NavTab(icon: Icons.undo_rounded,         outlineIcon: Icons.undo_outlined,           label: 'Returns'),
+                      _NavTab(icon: Icons.person_rounded,       outlineIcon: Icons.person_outline_rounded,  label: 'Profile'),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

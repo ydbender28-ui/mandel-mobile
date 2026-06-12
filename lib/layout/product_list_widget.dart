@@ -216,10 +216,10 @@ class ProductListWidgetState extends State<ProductListWidget> {
 
   Widget _buildTabListOnly(List<CategoryDto>? categoryList) {
     return Container(
-      color: Colors.white,
+      color: const Color(0xFF07091A),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: List.generate(categoryList!.length, (index) {
             final cat = categoryList[index];
@@ -251,18 +251,28 @@ class ProductListWidgetState extends State<ProductListWidget> {
                 margin: const EdgeInsets.only(right: 6),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF0D1135) : Colors.transparent,
+                  color: isSelected
+                      ? Colors.white.withOpacity(0.92)
+                      : Colors.white.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? const Color(0xFF0D1135) : const Color(0xFFE2E8F0),
+                    color: isSelected
+                        ? Colors.white.withOpacity(0.9)
+                        : Colors.white.withOpacity(0.14),
                   ),
+                  boxShadow: isSelected
+                      ? [BoxShadow(color: Colors.white.withOpacity(0.15),
+                          blurRadius: 8, offset: const Offset(0, 2))]
+                      : null,
                 ),
                 child: Text(
                   cat.name ?? '',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+                    color: isSelected
+                        ? const Color(0xFF07091A)
+                        : Colors.white.withOpacity(0.55),
                   ),
                 ),
               ),
@@ -320,22 +330,23 @@ class ProductListWidgetState extends State<ProductListWidget> {
   }
 
   Widget _buildShimmerTabView() {
-    return Shimmer.fromColors(
-        baseColor: Colors.grey.shade300,
-        highlightColor: Colors.grey.shade100,
-        child: const DefaultTabController(
-          length: 4,
-          child: Column(
-            children: [
-              TabBar(tabs: [
-                Tab(text: 'ALL'),
-                Tab(text: 'SNACK'),
-                Tab(text: 'DRINKS'),
-                Tab(text: 'ROLLING PAPER'),
-              ]),
-            ],
-          ),
-        ));
+    return Container(
+      color: const Color(0xFF07091A),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Shimmer.fromColors(
+        baseColor: const Color(0xFF1A2455),
+        highlightColor: const Color(0xFF2A3870),
+        child: Row(
+          children: List.generate(5, (i) => Container(
+            margin: const EdgeInsets.only(right: 8),
+            width: 70, height: 32,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20)),
+          )),
+        ),
+      ),
+    );
   }
 
   static const _bgGrad = LinearGradient(

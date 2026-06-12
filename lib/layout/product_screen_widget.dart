@@ -42,7 +42,7 @@ class _ProductScreenWidgetState extends State<ProductScreenWidget> {
           );
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: const Color(0xFF07091A),
       body: Column(children: [
         _header(context),
         Expanded(
