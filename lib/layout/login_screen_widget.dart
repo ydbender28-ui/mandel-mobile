@@ -1,176 +1,251 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mandel_mobile_app/utility/auth_support_utility.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 
 class LoginScreenWidget extends StatefulWidget {
   const LoginScreenWidget({super.key});
-
   @override
   State<LoginScreenWidget> createState() => _LoginScreenWidgetState();
 }
 
 class _LoginScreenWidgetState extends State<LoginScreenWidget>
     with AuthSupportUtility {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final _userNameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _formKey            = GlobalKey<FormState>();
+  final _emailCtrl          = TextEditingController();
+  final _passCtrl           = TextEditingController();
+  bool _loading             = false;
+  bool _passVisible         = false;
+  String _error             = '';
 
-  bool _isLoading = false;
-  bool _passwordVisible = false;
-  String _errorMessage = '';
+  static const _h1    = Color(0xFF0C0F1E);
+  static const _h2    = Color(0xFF1B2860);
+  static const _indigo = Color(0xFF4F46E5);
+  static const _bg    = Color(0xFFEEF0FA);
 
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
-    _formKey.currentState!.save();
-
-    setState(() { _isLoading = true; _errorMessage = ''; });
-
+    setState(() { _loading = true; _error = ''; });
     try {
-      final dio = Dio();
-      final response = await dio.post(
+      final res = await Dio().post(
         '${CommonConstants.mandelBaseUrl}/login',
         data: {
-          'email': _userNameController.text.trim().toLowerCase(),
-          'password': _passwordController.text.trim(),
+          'email':    _emailCtrl.text.trim().toLowerCase(),
+          'password': _passCtrl.text.trim(),
         },
       );
-
-      if (response.statusCode == 200 && response.data['token'] != null) {
-        await saveToken(response.data['token']);
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed(CommonConstants.mainScreenUrl);
-        }
+      if (res.statusCode == 200 && res.data['token'] != null) {
+        await saveToken(res.data['token']);
+        if (mounted) Navigator.of(context).pushReplacementNamed(CommonConstants.mainScreenUrl);
       } else {
-        setState(() { _errorMessage = response.data['error'] ?? 'Login failed'; });
+        setState(() { _error = res.data['error'] ?? 'Login failed'; });
       }
-    } catch (e) {
-      setState(() { _errorMessage = 'Invalid email or password'; });
+    } catch (_) {
+      setState(() { _error = 'Invalid email or password'; });
     } finally {
-      setState(() { _isLoading = false; });
+      setState(() { _loading = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light
+        .copyWith(statusBarColor: Colors.transparent));
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
-                // Logo
-                Container(
-                  alignment: Alignment.center,
-                  margin: const EdgeInsets.only(bottom: 7.0),
-                  child: Image.asset(
-                    'assets/images/mandel_login.png',
-                    width: 200,
-                    height: 200,
-                  ),
-                ),
-                const Text(
-                  'Mandel Wholesale',
-                  style: TextStyle(
-                    color: Color(0xFF26464a),
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Sign in to your account',
-                  style: TextStyle(color: Color(0xFF26464a), fontSize: 14),
-                ),
-                const SizedBox(height: 30),
+      backgroundColor: _bg,
+      body: Stack(children: [
+        // dark header background
+        Container(
+          height: MediaQuery.of(context).size.height * 0.42,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [_h1, _h2],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Stack(children: [
+            Positioned(right: -40, top: -40,
+              child: Container(width: 160, height: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _indigo.withOpacity(0.1)))),
+            Positioned(left: -20, bottom: 20,
+              child: Container(width: 100, height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF0EA5E9).withOpacity(0.08)))),
+          ]),
+        ),
 
-                // Email field
-                Container(
-                  margin: const EdgeInsets.only(left: 40, right: 40, bottom: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Email *', style: TextStyle(fontSize: 13)),
-                      TextFormField(
-                        controller: _userNameController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          ),
-                          contentPadding: EdgeInsets.only(left: 10),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        style: const TextStyle(fontSize: 13),
-                        validator: (value) {
-                          if (value!.trim().isEmpty) return 'Email is required';
-                          return null;
-                        },
-                      ),
-                    ],
+        // scrollable content
+        SafeArea(
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(children: [
+                const SizedBox(height: 36),
+
+                // logo
+                Center(
+                  child: Container(
+                    width: 90, height: 90,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                          color: Colors.white.withOpacity(0.2), width: 1)),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(23),
+                      child: Image.asset(
+                        'assets/images/mandel_login.png',
+                        fit: BoxFit.cover),
+                    ),
                   ),
                 ),
-
-                // Password field
-                Container(
-                  margin: const EdgeInsets.only(left: 40, right: 40, bottom: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Password *', style: TextStyle(fontSize: 13)),
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: !_passwordVisible,
-                        decoration: InputDecoration(
-                          border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          ),
-                          contentPadding: const EdgeInsets.only(left: 10),
-                          suffixIcon: IconButton(
-                            icon: Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off),
-                            onPressed: () => setState(() { _passwordVisible = !_passwordVisible; }),
-                          ),
-                        ),
-                        style: const TextStyle(fontSize: 13),
-                        validator: (value) {
-                          if (value!.trim().isEmpty) return 'Password is required';
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Error message
-                if (_errorMessage.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
-                    child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 13)),
-                  ),
-
                 const SizedBox(height: 16),
 
-                // Login button
+                const Text('Mandel Wholesale',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3)),
+                const SizedBox(height: 4),
+                Text('Sign in to your account',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.55),
+                    fontSize: 13)),
+
+                const SizedBox(height: 36),
+
+                // card
                 Container(
-                  margin: const EdgeInsets.only(left: 40, right: 40),
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _signIn,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('Sign In', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0D1135).withOpacity(0.08),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // email
+                      _label('Email'),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(fontSize: 14, color: Color(0xFF0D1135)),
+                        decoration: const InputDecoration(
+                          hintText: 'you@company.com',
+                          prefixIcon: Icon(Icons.mail_outline_rounded,
+                              size: 18, color: Color(0xFF9AA3C2)),
+                          contentPadding:
+                              EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                        ),
+                        validator: (v) =>
+                            (v?.trim().isEmpty ?? true) ? 'Email is required' : null,
+                      ),
+                      const SizedBox(height: 18),
+
+                      // password
+                      _label('Password'),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _passCtrl,
+                        obscureText: !_passVisible,
+                        style: const TextStyle(fontSize: 14, color: Color(0xFF0D1135)),
+                        decoration: InputDecoration(
+                          hintText: '••••••••',
+                          prefixIcon: const Icon(Icons.lock_outline_rounded,
+                              size: 18, color: Color(0xFF9AA3C2)),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _passVisible
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              size: 18, color: const Color(0xFF9AA3C2)),
+                            onPressed: () =>
+                                setState(() => _passVisible = !_passVisible),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 12),
+                        ),
+                        validator: (v) =>
+                            (v?.trim().isEmpty ?? true) ? 'Password is required' : null,
+                      ),
+
+                      // error
+                      if (_error.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF0F6),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: const Color(0xFFEC4899).withOpacity(0.3))),
+                          child: Row(children: [
+                            const Icon(Icons.error_outline_rounded,
+                                size: 15, color: Color(0xFFEC4899)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(_error,
+                                style: const TextStyle(
+                                    color: Color(0xFFBE185D), fontSize: 12))),
+                          ]),
+                        ),
+                      ],
+
+                      const SizedBox(height: 24),
+
+                      // button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: _loading ? null : _signIn,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _indigo,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: _loading
+                              ? const SizedBox(
+                                  width: 20, height: 20,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2))
+                              : const Text('Sign In',
+                                  style: TextStyle(
+                                      fontSize: 15, fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+                const SizedBox(height: 32),
+              ]),
             ),
           ),
         ),
-      ),
+      ]),
     );
   }
+
+  Widget _label(String text) => Text(text,
+    style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF4A5272),
+        letterSpacing: 0.3));
 }

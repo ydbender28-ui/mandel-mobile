@@ -54,41 +54,62 @@ class _MyAppState extends State<MyApp> {
       scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
       theme: ThemeData(
           fontFamily: 'Nunito',
-          scaffoldBackgroundColor: CommonCustomColor.defaultsScaffoldColor,
-          appBarTheme:
-              const AppBarTheme(color: CommonCustomColor.defaultsScaffoldColor),
+          scaffoldBackgroundColor: const Color(0xFFEEF0FA),
           colorScheme: ColorScheme.fromSeed(
-              seedColor: CommonCustomColor.mandelPrimaryColor),
+            seedColor: const Color(0xFF4F46E5),
+            primary: const Color(0xFF4F46E5),
+            secondary: const Color(0xFF0EA5E9),
+            surface: Colors.white,
+          ),
           useMaterial3: true,
-          inputDecorationTheme: const InputDecorationTheme(
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF0C0F1E),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            centerTitle: false,
+            titleTextStyle: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: Color(0XFFEEEEEE),
-            labelStyle: TextStyle(color: Color(0XFF555555), fontSize: 13.0),
-            hintStyle: TextStyle(fontSize: 13.0),
+            fillColor: Colors.white,
+            labelStyle: const TextStyle(color: Color(0xFF9AA3C2), fontSize: 13),
+            hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9AA3C2)),
             enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(width: 0, color: Colors.transparent),
-                borderRadius: BorderRadius.all(Radius.circular(10))),
+                borderSide: const BorderSide(width: 1, color: Color(0xFFDDE0F0)),
+                borderRadius: BorderRadius.circular(12)),
             disabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(width: 0, color: Colors.transparent),
-                borderRadius: BorderRadius.all(Radius.circular(10))),
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(12)),
             focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(width: 0, color: Colors.transparent),
-                borderRadius: BorderRadius.all(Radius.circular(10))),
+                borderSide: const BorderSide(width: 1.5, color: Color(0xFF4F46E5)),
+                borderRadius: BorderRadius.circular(12)),
             errorBorder: OutlineInputBorder(
-                borderSide: BorderSide(width: 0, color: Colors.transparent),
-                borderRadius: BorderRadius.all(Radius.circular(10))),
+                borderSide: const BorderSide(width: 1, color: Color(0xFFEC4899)),
+                borderRadius: BorderRadius.circular(12)),
+            focusedErrorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(width: 1.5, color: Color(0xFFEC4899)),
+                borderRadius: BorderRadius.circular(12)),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: CommonCustomColor
-                  .mandelPrimaryColor, // background (button) color
-              foregroundColor: Colors.white, // foreground (text) color
+              backgroundColor: const Color(0xFF4F46E5),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           ),
           bottomSheetTheme: const BottomSheetThemeData(
             backgroundColor: Colors.white,
             modalBackgroundColor: Colors.white,
             surfaceTintColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
           )),
       initialRoute: CommonConstants.baseUrl,
       onGenerateRoute: RouteGenerator.generateRoute,

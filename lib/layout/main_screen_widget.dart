@@ -6,7 +6,6 @@ import 'package:mandel_mobile_app/layout/product_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/profile_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/return_cart_widget.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
-import 'package:mandel_mobile_app/utility/top_indicator.dart';
 
 class MainScreenWidget extends StatefulWidget {
   final int defaultIndex;
@@ -18,18 +17,10 @@ class MainScreenWidget extends StatefulWidget {
 
 class _MainScreenWidgetState extends State<MainScreenWidget>
     with WidgetsBindingObserver, CommonUtility {
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
 
-  // Future<void> _loadUrl() async {
-  //   final Uri url = Uri.parse('https://flutter.dev');
-  //   if (!await launchUrl(url)) {
-  //     throw Exception('Could not launch $url');
-  //   }
-  // }
+  static const _primary   = Color(0xFF4F46E5);
+  static const _navBg     = Colors.white;
+  static const _unsel     = Color(0xFF9AA3C2);
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +31,7 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
         initialIndex: widget.defaultIndex,
         child: Scaffold(
           body: const TabBarView(
+            physics: NeverScrollableScrollPhysics(),
             children: [
               HomeScreenWidget(),
               ProductScreenWidget(),
@@ -50,37 +42,63 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
             ],
           ),
           bottomNavigationBar: Container(
-            decoration: const BoxDecoration(
-                border: Border(
-                    top: BorderSide(color: Color(0xFFD2D2D2), width: 0.5))),
-            child: TabBar(
-              indicator: TopIndicator(),
-              labelStyle:
-                  const TextStyle(fontSize: 10, fontWeight: FontWeight.w200),
-              indicatorPadding: EdgeInsets.zero,
-              tabs: const [
-                Tab(
-                    icon: Icon(Icons.home_outlined, size: 25),
-                    text: 'Home'),
-                Tab(
-                    icon: Icon(Icons.storefront_outlined, size: 25),
-                    text: 'Products'),
-                Tab(
-                    icon: Icon(Icons.list_outlined, size: 25),
-                    text: 'Orders'),
-                Tab(
-                    icon: Icon(Icons.shopping_cart_outlined, size: 25),
-                    text: 'Cart'),
-                Tab(
-                    icon: Icon(Icons.assignment_return_outlined, size: 25),
-                    text: 'Returns'),
-                Tab(
-                    icon: Icon(Icons.account_circle_outlined, size: 25),
-                    text: 'Profile')
+            decoration: BoxDecoration(
+              color: _navBg,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0D1135).withOpacity(0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, -4)),
               ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: TabBar(
+                indicatorColor: Colors.transparent,
+                dividerColor: Colors.transparent,
+                labelColor: _primary,
+                unselectedLabelColor: _unsel,
+                labelStyle: const TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.w700,
+                    fontFamily: 'Nunito'),
+                unselectedLabelStyle: const TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.w500,
+                    fontFamily: 'Nunito'),
+                tabs: const [
+                  _NavTab(icon: Icons.home_rounded,       outlineIcon: Icons.home_outlined,              label: 'Home'),
+                  _NavTab(icon: Icons.storefront_rounded, outlineIcon: Icons.storefront_outlined,        label: 'Products'),
+                  _NavTab(icon: Icons.receipt_rounded,    outlineIcon: Icons.receipt_outlined,           label: 'Orders'),
+                  _NavTab(icon: Icons.shopping_bag_rounded, outlineIcon: Icons.shopping_bag_outlined,    label: 'Cart'),
+                  _NavTab(icon: Icons.undo_rounded,       outlineIcon: Icons.undo_outlined,              label: 'Returns'),
+                  _NavTab(icon: Icons.person_rounded,     outlineIcon: Icons.person_outline_rounded,     label: 'Profile'),
+                ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _NavTab extends StatelessWidget {
+  final IconData icon;
+  final IconData outlineIcon;
+  final String label;
+  const _NavTab({required this.icon, required this.outlineIcon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tab(
+      height: 56,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 6),
+          Icon(icon, size: 24),
+          const SizedBox(height: 3),
+          Text(label),
+        ],
       ),
     );
   }

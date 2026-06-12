@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mandel_mobile_app/layout/invoice_screen_widget.dart';
@@ -5,45 +6,75 @@ import 'package:mandel_mobile_app/model/invoice_dto.dart';
 import 'package:mandel_mobile_app/model/ledger_row_dto.dart';
 import 'package:mandel_mobile_app/service/ar_service.dart';
 import 'package:mandel_mobile_app/service/invoice_service.dart';
-import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:shimmer/shimmer.dart';
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-class _C {
-  static const bg         = Color(0xFFF1F4F8);
-  static const surface    = Colors.white;
-  static const textHi     = Color(0xFF0D1B2A);
-  static const textMid    = Color(0xFF4A5568);
-  static const textLo     = Color(0xFF9AA5B4);
+// ─── Design tokens ─────────────────────────────────────────────────────────
+class _T {
+  // header gradient stops
+  static const h1 = Color(0xFF0C0F1E);
+  static const h2 = Color(0xFF111833);
+  static const h3 = Color(0xFF1B2860);
 
-  static const invoice    = Color(0xFF2563EB);
-  static const invoiceBg  = Color(0xFFEFF6FF);
-  static const pay        = Color(0xFF16A34A);
-  static const payBg      = Color(0xFFF0FDF4);
-  static const credit     = Color(0xFFEA580C);
-  static const creditBg   = Color(0xFFFFF7ED);
-  static const pdc        = Color(0xFF7C3AED);
-  static const pdcBg      = Color(0xFFF5F3FF);
-  static const warning    = Color(0xFFD97706);
-  static const warningBg  = Color(0xFFFFFBEB);
+  // page & surface
+  static const bg      = Color(0xFFEEF0FA);
+  static const surface = Colors.white;
+
+  // text
+  static const textHi  = Color(0xFF0D1135);
+  static const textMid = Color(0xFF4A5272);
+  static const textLo  = Color(0xFF9AA3C2);
+
+  // transaction accents
+  static const invoice   = Color(0xFF4F46E5);
+  static const invoiceBg = Color(0xFFF0EEFF);
+
+  static const payment   = Color(0xFF0EA5E9);
+  static const paymentBg = Color(0xFFE0F5FE);
+
+  static const credit    = Color(0xFFF59E0B);
+  static const creditBg  = Color(0xFFFFF8E7);
+
+  static const pdc       = Color(0xFFEC4899);
+  static const pdcBg     = Color(0xFFFFF0F6);
+
+  // status
+  static const applied    = Color(0xFF10B981);
+  static const appliedBg  = Color(0xFFECFDF5);
+  static const unapplied  = Color(0xFFF97316);
+  static const unapplBg   = Color(0xFFFFF4EC);
+  static const available  = Color(0xFF6366F1);
+  static const availBg    = Color(0xFFF0EEFF);
 }
 
+// ─── Curved header clipper ────────────────────────────────────────────────
+class _ArcClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size s) {
+    final p = Path();
+    p.lineTo(0, s.height - 28);
+    p.quadraticBezierTo(s.width / 2, s.height + 14, s.width, s.height - 28);
+    p.lineTo(s.width, 0);
+    p.close();
+    return p;
+  }
+  @override bool shouldReclip(_) => false;
+}
+
+// ─── Widget ───────────────────────────────────────────────────────────────
 class ArScreenWidget extends StatefulWidget {
   const ArScreenWidget({super.key});
-
   @override
   State<ArScreenWidget> createState() => _ArScreenWidgetState();
 }
 
 class _ArScreenWidgetState extends State<ArScreenWidget>
     with SingleTickerProviderStateMixin {
-  final _arService     = ArService();
-  final _invoiceService = InvoiceService();
-  late Future<void> _loadFuture;
-  List<LedgerRowDto> _rows   = [];
+  final _arSvc  = ArService();
+  final _invSvc = InvoiceService();
+  late Future<void> _future;
+  List<LedgerRowDto> _rows    = [];
   double             _balance = 0;
-  String             _filter  = '';
-  late TabController  _tab;
+  late TabController _tab;
 
   static const _labels = ['All', 'Invoices', 'Payments', 'Credits'];
   static const _values = ['',    'invoice',  'payment',  'credit' ];
@@ -51,46 +82,44 @@ class _ArScreenWidgetState extends State<ArScreenWidget>
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: _labels.length, vsync: this);
-    _tab.addListener(() {
-      if (!_tab.indexIsChanging) {
-        setState(() => _filter = _values[_tab.index]);
-      }
-    });
-    _loadFuture = _load();
+    _tab = TabController(length: _labels.length, vsync: this)
+      ..addListener(() {
+        if (!_tab.indexIsChanging) setState(() {});
+      });
+    _future = _load();
   }
 
   @override
-  void dispose() {
-    _tab.dispose();
-    super.dispose();
-  }
+  void dispose() { _tab.dispose(); super.dispose(); }
 
   Future<void> _load() async {
-    final res = await _arService.getLedger();
+    final res = await _arSvc.getLedger();
     if (res.statusCode == 200) {
-      final data    = res.data as Map<String, dynamic>;
-      final rawRows = (data['rows'] as List?)
-              ?.map((r) => LedgerRowDto.fromJson(r as Map<String, dynamic>))
-              .toList() ?? [];
-      _rows    = rawRows;
-      _balance = rawRows.isNotEmpty ? rawRows.first.runningBalance : 0;
+      final data = res.data as Map<String, dynamic>;
+      final raw  = (data['rows'] as List?)
+          ?.map((r) => LedgerRowDto.fromJson(r as Map<String, dynamic>))
+          .toList() ?? [];
+      _rows    = raw;
+      _balance = raw.isNotEmpty ? raw.first.runningBalance : 0;
     }
   }
 
   Future<void> _reload() async {
-    final future = _load();
-    setState(() { _rows = []; _balance = 0; _loadFuture = future; });
-    await future;
+    final f = _load();
+    setState(() { _rows = []; _balance = 0; _future = f; });
+    await f;
     setState(() {});
   }
 
-  List<LedgerRowDto> get _filtered => _filter.isEmpty ? _rows : _rows.where((r) {
-    if (_filter == 'invoice') return r.isInvoice;
-    if (_filter == 'payment') return r.isPayment;
-    if (_filter == 'credit')  return r.isCredit;
-    return true;
-  }).toList();
+  String get _filter => _values[_tab.index];
+
+  List<LedgerRowDto> get _filtered => _filter.isEmpty ? _rows
+      : _rows.where((r) {
+          if (_filter == 'invoice') return r.isInvoice;
+          if (_filter == 'payment') return r.isPayment;
+          if (_filter == 'credit')  return r.isCredit;
+          return true;
+        }).toList();
 
   String _fmt(String? raw) {
     if (raw == null || raw.isEmpty) return '';
@@ -98,165 +127,180 @@ class _ArScreenWidgetState extends State<ArScreenWidget>
     return d.length == 3 ? '${d[1]}/${d[2]}/${d[0]}' : raw.split('T').first;
   }
 
-  // ─── Build ──────────────────────────────────────────────────────────────────
+  // ── Build ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light
+        .copyWith(statusBarColor: Colors.transparent));
     return Scaffold(
-      backgroundColor: _C.bg,
+      backgroundColor: _T.bg,
       body: Column(children: [
         _header(),
-        _tabs(),
+        _tabBar(),
         Expanded(child: _list()),
       ]),
     );
   }
 
-  // ─── Header ─────────────────────────────────────────────────────────────────
+  // ── Header ───────────────────────────────────────────────────────────────
   Widget _header() {
     return FutureBuilder(
-      future: _loadFuture,
-      builder: (context, snap) {
+      future: _future,
+      builder: (ctx, snap) {
         final loading = snap.connectionState != ConnectionState.done;
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                CommonCustomColor.mandelPrimaryColor,
-                CommonCustomColor.mandelPrimaryColor[700]!,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Stack(children: [
-            // decorative circles
-            Positioned(right: -40, top: -40,
-              child: Container(width: 160, height: 160,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.06)))),
-            Positioned(right: 40, bottom: -20,
-              child: Container(width: 90, height: 90,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.04)))),
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 20, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // back + title row
-                    Row(children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white, size: 20),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      const Text('Account (AR)',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2)),
-                    ]),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Outstanding Balance',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 1.2)),
-                          const SizedBox(height: 6),
-                          loading
-                            ? const SizedBox(width: 22, height: 22,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2.5, color: Colors.white))
-                            : FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  '\$${_balance.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 42,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -1.5,
-                                    height: 1.0),
-                                )),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+        return ClipPath(
+          clipper: _ArcClipper(),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [_T.h1, _T.h2, _T.h3],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-          ]),
+            child: Stack(children: [
+              // decorative orbs
+              Positioned(right: -50, top: -50,
+                child: _orb(200, const Color(0xFF4F46E5), 0.09)),
+              Positioned(left: -30, bottom: 30,
+                child: _orb(120, const Color(0xFF0EA5E9), 0.07)),
+              Positioned(right: 60, bottom: 20,
+                child: _orb(70, const Color(0xFFEC4899), 0.07)),
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(6, 6, 20, 44),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // back row
+                      Row(children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white70, size: 19),
+                          onPressed: () => Navigator.of(context).pop()),
+                        const Text('Account (AR)',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.1)),
+                      ]),
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('OUTSTANDING BALANCE',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.45),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 2.0)),
+                            const SizedBox(height: 8),
+                            loading
+                              ? const SizedBox(width: 22, height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white60))
+                              : Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 8),
+                                      child: Text('\$',
+                                        style: TextStyle(
+                                          color: Colors.white60,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w600))),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      _balance.abs().toStringAsFixed(2),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 44,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -2,
+                                        height: 1.0)),
+                                  ],
+                                ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ]),
+          ),
         );
       },
     );
   }
 
-  // ─── Tabs ────────────────────────────────────────────────────────────────────
-  Widget _tabs() {
+  Widget _orb(double size, Color color, double opacity) => Container(
+    width: size, height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: color.withOpacity(opacity)));
+
+  // ── Tab bar ──────────────────────────────────────────────────────────────
+  Widget _tabBar() {
     return Container(
-      color: _C.surface,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      color: _T.bg,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       child: Container(
-        height: 40,
+        height: 38,
         decoration: BoxDecoration(
-          color: _C.bg,
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.white.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFDDE0F0), width: 1),
         ),
         child: TabBar(
           controller: _tab,
           indicator: BoxDecoration(
-            color: CommonCustomColor.mandelPrimaryColor,
-            borderRadius: BorderRadius.circular(10),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF4F46E5), Color(0xFF6D63F0)]),
+            borderRadius: BorderRadius.circular(8),
             boxShadow: [BoxShadow(
-              color: CommonCustomColor.mandelPrimaryColor.withOpacity(0.4),
+              color: const Color(0xFF4F46E5).withOpacity(0.4),
               blurRadius: 8, offset: const Offset(0, 2))],
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           indicatorPadding: const EdgeInsets.all(3),
           dividerColor: Colors.transparent,
           labelColor: Colors.white,
-          unselectedLabelColor: _C.textMid,
-          labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-          unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          unselectedLabelColor: _T.textMid,
+          labelStyle: const TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w700),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w500),
           tabs: _labels.map((l) => Tab(text: l)).toList(),
         ),
       ),
     );
   }
 
-  // ─── List ────────────────────────────────────────────────────────────────────
+  // ── List ─────────────────────────────────────────────────────────────────
   Widget _list() {
     return FutureBuilder(
-      future: _loadFuture,
-      builder: (context, snap) {
+      future: _future,
+      builder: (ctx, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return Shimmer.fromColors(
-            baseColor: const Color(0xFFE8ECF0),
-            highlightColor: const Color(0xFFF8FAFB),
+            baseColor: const Color(0xFFE2E5F0),
+            highlightColor: const Color(0xFFF8F9FF),
             child: _shimmer());
         }
         final rows = _filtered;
         if (rows.isEmpty) return _empty();
         return RefreshIndicator(
           onRefresh: _reload,
-          color: CommonCustomColor.mandelPrimaryColor,
+          color: _T.invoice,
           strokeWidth: 2.5,
           child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
             itemCount: rows.length,
             itemBuilder: (_, i) => _card(rows[i]),
           ),
@@ -265,49 +309,55 @@ class _ArScreenWidgetState extends State<ArScreenWidget>
     );
   }
 
-  // ─── Transaction card ────────────────────────────────────────────────────────
+  // ── Card ─────────────────────────────────────────────────────────────────
   Widget _card(LedgerRowDto row) {
-    final isPayment = row.isPayment;
-    final isCredit  = row.isCredit;
-    final isPDCInv  = !isPayment && row.isPDC;
+    final isPay    = row.isPayment;
+    final isCr     = row.isCredit;
+    final isPDCInv = !isPay && row.isPDC;
 
     Color accent, accentBg;
     IconData icon;
 
-    if (isPayment) {
-      accent = _C.pay; accentBg = _C.payBg; icon = Icons.south_west_rounded;
-    } else if (isCredit) {
-      accent = _C.credit; accentBg = _C.creditBg; icon = Icons.undo_rounded;
+    if (isPay) {
+      accent = _T.payment; accentBg = _T.paymentBg;
+      icon = Icons.south_west_rounded;
+    } else if (isCr) {
+      accent = _T.credit; accentBg = _T.creditBg;
+      icon = Icons.undo_rounded;
     } else if (isPDCInv) {
-      accent = _C.pdc; accentBg = _C.pdcBg; icon = Icons.event_available_rounded;
+      accent = _T.pdc; accentBg = _T.pdcBg;
+      icon = Icons.event_available_rounded;
     } else {
-      accent = _C.invoice; accentBg = _C.invoiceBg; icon = Icons.north_east_rounded;
+      accent = _T.invoice; accentBg = _T.invoiceBg;
+      icon = Icons.north_east_rounded;
     }
 
-    final amtAbs    = row.amount.abs();
-    final amtStr    = '\$${amtAbs.toStringAsFixed(2)}';
-    final amtColor  = (isPayment || isCredit) ? _C.pay : _C.textHi;
-    final amtPrefix = (isPayment || isCredit) ? '−' : '+';
+    final amtAbs   = row.amount.abs();
+    final amtStr   = '\$${amtAbs.toStringAsFixed(2)}';
+    final amtColor = (isPay || isCr) ? _T.payment : _T.textHi;
+    final prefix   = (isPay || isCr) ? '−' : '+';
 
-    // build chip list
     final chips = <Widget>[];
-    _payChips(row, chips);
-    _invoiceChips(row, chips, isPayment, isCredit);
+    _buildChips(row, chips, isPay, isCr);
 
     final tappable = row.isInvoice && row.id != null;
 
     return GestureDetector(
-      onTap: tappable ? () => _openInvoice(row) : null,
+      onTap: tappable ? () => _push(row) : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: _C.surface,
+          color: _T.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.055),
-              blurRadius: 12,
-              offset: const Offset(0, 3)),
+              color: const Color(0xFF0D1135).withOpacity(0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 4)),
+            BoxShadow(
+              color: accent.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2)),
           ],
         ),
         child: ClipRRect(
@@ -316,82 +366,83 @@ class _ArScreenWidgetState extends State<ArScreenWidget>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // left accent bar
-                Container(width: 4, color: accent),
-                // content
+                // accent bar
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [accent, accent.withOpacity(0.5)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter),
+                  ),
+                ),
+                // body
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                    padding: const EdgeInsets.fromLTRB(13, 13, 13, 13),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // icon circle
+                            // icon
                             Container(
                               width: 40, height: 40,
                               decoration: BoxDecoration(
                                 color: accentBg,
-                                borderRadius: BorderRadius.circular(12)),
+                                borderRadius: BorderRadius.circular(11)),
                               child: Icon(icon, color: accent, size: 20)),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 11),
                             // title + date
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(row.txType ?? '',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: _C.textHi)),
-                                  const SizedBox(height: 2),
-                                  Text(_fmt(row.txDate),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: _C.textLo,
-                                      fontWeight: FontWeight.w400)),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
+                            Expanded(child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(row.txType ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: _T.textHi)),
+                                const SizedBox(height: 2),
+                                Text(_fmt(row.txDate),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: _T.textLo)),
+                              ],
+                            )),
+                            const SizedBox(width: 6),
                             // amount + balance
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text('$amtPrefix$amtStr',
+                                Text('$prefix$amtStr',
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w800,
                                     color: amtColor,
-                                    letterSpacing: -0.3)),
+                                    letterSpacing: -0.4)),
                                 const SizedBox(height: 2),
-                                Text(
-                                  'Bal \$${row.runningBalance.toStringAsFixed(2)}',
+                                Text('Bal \$${row.runningBalance.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                     fontSize: 10,
-                                    color: _C.textLo,
+                                    color: _T.textLo,
                                     fontWeight: FontWeight.w500)),
                               ],
                             ),
                           ],
                         ),
-                        // chips
                         if (chips.isNotEmpty) ...[
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 9),
                           Wrap(spacing: 6, runSpacing: 5, children: chips),
                         ],
-                        // tap hint
                         if (tappable) ...[
-                          const SizedBox(height: 8),
-                          Row(children: [
+                          const SizedBox(height: 9),
+                          Row(mainAxisSize: MainAxisSize.min, children: [
                             Text('View details',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: accent,
-                                fontWeight: FontWeight.w600)),
-                            const SizedBox(width: 2),
+                                fontWeight: FontWeight.w600,
+                                color: accent)),
                             Icon(Icons.chevron_right_rounded,
                               size: 14, color: accent),
                           ]),
@@ -408,77 +459,72 @@ class _ArScreenWidgetState extends State<ArScreenWidget>
     );
   }
 
-  void _payChips(LedgerRowDto row, List<Widget> out) {
-    if (!row.isPayment) return;
-    final method   = row.payMethod ?? '';
-    final checkNum = (row.checkNum != null && row.checkNum!.isNotEmpty) ? row.checkNum : null;
-    final isPostDated = row.postDate != null;
+  void _buildChips(LedgerRowDto row, List<Widget> out,
+      bool isPay, bool isCr) {
+    if (isPay) {
+      final method    = row.payMethod ?? '';
+      final checkNum  = (row.checkNum != null && row.checkNum!.isNotEmpty)
+          ? row.checkNum : null;
+      final isPostDated = row.postDate != null;
 
-    if (isPostDated) {
-      if (checkNum != null) {
-        out.add(_chip('$method #$checkNum', _C.pdc, _C.pdcBg));
+      if (isPostDated) {
+        if (checkNum != null) {
+          out.add(_chip('$method #$checkNum', _T.invoice, _T.invoiceBg));
+        }
+        out.add(_chip(
+          'Post-Dated  \$${row.amount.abs().toStringAsFixed(2)}',
+          _T.pdc, _T.pdcBg,
+          icon: Icons.event_note_rounded));
+        out.add(_chip(
+          'Deposit ${_fmt(row.postDate)}',
+          _T.pdc, _T.pdcBg,
+          icon: Icons.calendar_month_rounded));
+      } else if (checkNum != null) {
+        out.add(_chip('$method #$checkNum', _T.invoice, _T.invoiceBg));
+      } else if (method.isNotEmpty) {
+        out.add(_chip(method, _T.invoice, _T.invoiceBg));
       }
-      out.add(_chip(
-        'Post-Dated  \$${row.amount.abs().toStringAsFixed(2)}',
-        _C.pdc, _C.pdcBg,
-        icon: Icons.event_note_rounded));
-      out.add(_chip(
-        'Deposit ${_fmt(row.postDate)}',
-        _C.pdc, _C.pdcBg,
-        icon: Icons.calendar_today_rounded));
-    } else if (checkNum != null) {
-      out.add(_chip('$method #$checkNum', _C.invoice, _C.invoiceBg));
-    } else if (method.isNotEmpty) {
-      out.add(_chip(method, _C.invoice, _C.invoiceBg));
-    }
 
-    if (row.isOpen != null) {
-      if (row.isOpen!) {
-        out.add(_chip('Unapplied', _C.warning, _C.warningBg,
-            icon: Icons.hourglass_top_rounded));
-      } else {
-        out.add(_chip('Applied', _C.pay, _C.payBg,
-            icon: Icons.check_circle_outline_rounded));
+      if (row.isOpen != null) {
+        out.add(row.isOpen!
+          ? _chip('Unapplied', _T.unapplied, _T.unapplBg,
+              icon: Icons.hourglass_top_rounded)
+          : _chip('Applied', _T.applied, _T.appliedBg,
+              icon: Icons.check_circle_outline_rounded));
       }
-    }
-  }
-
-  void _invoiceChips(LedgerRowDto row, List<Widget> out,
-      bool isPayment, bool isCredit) {
-    if (isPayment) return;
-    if (isCredit) {
+    } else if (isCr) {
       if (row.invoice != null) {
-        out.add(_chip('Cr #${row.invoice}', _C.credit, _C.creditBg));
+        out.add(_chip('Cr #${row.invoice}', _T.credit, _T.creditBg,
+            icon: Icons.receipt_long_rounded));
       }
       if (row.isOpen != null) {
-        if (row.isOpen!) {
-          out.add(_chip('Available', _C.invoice, _C.invoiceBg,
-              icon: Icons.wallet_rounded));
-        } else {
-          out.add(_chip('Applied', _C.pay, _C.payBg,
+        out.add(row.isOpen!
+          ? _chip('Available', _T.available, _T.availBg,
+              icon: Icons.account_balance_wallet_outlined)
+          : _chip('Applied', _T.applied, _T.appliedBg,
               icon: Icons.check_circle_outline_rounded));
-        }
       }
     } else {
       if (row.invoice != null) {
-        out.add(_chip('Inv #${row.invoice}', _C.invoice, _C.invoiceBg));
+        out.add(_chip('Inv #${row.invoice}', _T.invoice, _T.invoiceBg,
+            icon: Icons.receipt_rounded));
       }
       if (row.isPDC && row.postDate != null) {
         out.add(_chip(
           'Post Date ${_fmt(row.postDate)}',
-          _C.pdc, _C.pdcBg,
-          icon: Icons.calendar_today_rounded));
+          _T.pdc, _T.pdcBg,
+          icon: Icons.calendar_month_rounded));
       }
     }
   }
 
   Widget _chip(String label, Color fg, Color bg, {IconData? icon}) {
     return Container(
-      padding: EdgeInsets.fromLTRB(icon != null ? 6 : 8, 4, 9, 4),
+      padding: EdgeInsets.fromLTRB(icon != null ? 6 : 9, 4, 9, 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: fg.withOpacity(0.18), width: 1)),
+        border: Border.all(color: fg.withOpacity(0.2), width: 1)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[
           Icon(icon, size: 11, color: fg),
@@ -487,99 +533,78 @@ class _ArScreenWidgetState extends State<ArScreenWidget>
         Text(label,
           style: TextStyle(
             fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: fg,
             letterSpacing: 0.1)),
       ]),
     );
   }
 
-  void _openInvoice(LedgerRowDto row) {
+  void _push(LedgerRowDto row) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => InvoiceDetailScreen(
         invoice: InvoiceDto(
-          arhId: row.id,
-          number: row.invoice,
-          amount: row.amount,
-          invoiceDate: row.txDate,
-          isOpen: true,
-          status: 'OPEN',
-        ),
-        invoiceService: _invoiceService,
-        formatDate: _fmt,
-      ),
-    ));
+          arhId: row.id, number: row.invoice, amount: row.amount,
+          invoiceDate: row.txDate, isOpen: true, status: 'OPEN'),
+        invoiceService: _invSvc,
+        formatDate: _fmt)));
   }
 
-  // ─── Empty state ─────────────────────────────────────────────────────────────
-  Widget _empty() {
-    return Center(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 72, height: 72,
-          decoration: BoxDecoration(
-            color: _C.invoiceBg,
-            borderRadius: BorderRadius.circular(24)),
-          child: const Icon(Icons.receipt_long_outlined,
-              size: 36, color: _C.invoice)),
-        const SizedBox(height: 16),
-        const Text('No transactions',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: _C.textHi)),
-        const SizedBox(height: 6),
-        const Text('Nothing to show for this filter.',
-          style: TextStyle(fontSize: 13, color: _C.textLo)),
-      ]),
-    );
-  }
-
-  // ─── Shimmer skeleton ────────────────────────────────────────────────────────
-  Widget _shimmer() {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-      itemCount: 7,
-      itemBuilder: (_, __) => Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        height: 82,
+  // ── Empty ────────────────────────────────────────────────────────────────
+  Widget _empty() => Center(
+    child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Container(
+        width: 68, height: 68,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16)),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Row(children: [
-            Container(width: 4, color: const Color(0xFFE0E0E0)),
-            const SizedBox(width: 14),
-            Container(width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE0E0E0),
-                borderRadius: BorderRadius.circular(12))),
-            const SizedBox(width: 12),
-            Expanded(child: Column(
+          color: _T.invoiceBg,
+          borderRadius: BorderRadius.circular(20)),
+        child: const Icon(Icons.receipt_long_outlined,
+            size: 34, color: _T.invoice)),
+      const SizedBox(height: 14),
+      const Text('No transactions',
+        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: _T.textHi)),
+      const SizedBox(height: 5),
+      const Text('Nothing to show for this filter.',
+        style: TextStyle(fontSize: 13, color: _T.textLo)),
+    ]));
+
+  // ── Shimmer ───────────────────────────────────────────────────────────────
+  Widget _shimmer() => ListView.builder(
+    padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+    itemCount: 7,
+    itemBuilder: (_, __) => Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      height: 78,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Row(children: [
+          Container(width: 4, color: const Color(0xFFE2E5F0)),
+          const SizedBox(width: 13),
+          Container(width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2E5F0),
+              borderRadius: BorderRadius.circular(11))),
+          const SizedBox(width: 11),
+          Expanded(child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(height: 13, width: 100, color: const Color(0xFFE2E5F0)),
+              const SizedBox(height: 6),
+              Container(height: 10, width: 65, color: const Color(0xFFE2E5F0)),
+            ])),
+          Padding(
+            padding: const EdgeInsets.only(right: 13),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Container(height: 13, width: 110, color: const Color(0xFFE0E0E0)),
-                const SizedBox(height: 6),
-                Container(height: 10, width: 70, color: const Color(0xFFE0E0E0)),
-              ],
-            )),
-            Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(height: 14, width: 60, color: const Color(0xFFE0E0E0)),
-                  const SizedBox(height: 5),
-                  Container(height: 10, width: 40, color: const Color(0xFFE0E0E0)),
-                ],
-              ),
-            ),
-          ]),
-        ),
-      ),
-    );
-  }
+                Container(height: 14, width: 55, color: const Color(0xFFE2E5F0)),
+                const SizedBox(height: 5),
+                Container(height: 10, width: 38, color: const Color(0xFFE2E5F0)),
+              ])),
+        ]))));
 }
