@@ -127,18 +127,18 @@ class _DealSwiperWidgetState extends State<DealSwiperWidget> {
         child: Stack(
           children: [
             // Optional image overlay
-            if (ad.imageUrl != null && ad.imageUrl!.startsWith('http'))
+            if (_resolveAdUrl(ad.imageUrl) != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(18),
                 child: SizedBox.expand(
                   child: MandelNetworkImage(
-                    url: ad.imageUrl!,
+                    url: _resolveAdUrl(ad.imageUrl)!,
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
             // Dark scrim when image is present
-            if (ad.imageUrl != null && ad.imageUrl!.startsWith('http'))
+            if (_resolveAdUrl(ad.imageUrl) != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(18),
                 child: Container(color: Colors.black.withOpacity(0.45)),
@@ -301,6 +301,12 @@ class _DealSwiperWidgetState extends State<DealSwiperWidget> {
         ),
       ),
     );
+  }
+
+  String? _resolveAdUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    if (url.startsWith('http')) return url;
+    return CommonConstants.mandelImageBaseUrl + url;
   }
 
   List<Color> _parseGradient(String css) {

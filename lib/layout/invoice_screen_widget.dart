@@ -33,11 +33,16 @@ class _InvoiceScreenState extends State<InvoiceScreen>
   bool _hasFilterData = true;
 
   Future<void> _loadInvoices() async {
-    Response response = await _invoiceService.getInvoices(filters);
-    if (response.statusCode == 200) {
-      final results = InvoiceSearchResultDto.fromJson(response.data);
-      _invoiceList.addAll(results.results!);
-      _hasMore = results.meta!.totalCount! > _invoiceList.length;
+    try {
+      Response response = await _invoiceService.getInvoices(filters);
+      if (response.statusCode == 200) {
+        final results = InvoiceSearchResultDto.fromJson(response.data);
+        _invoiceList.addAll(results.results!);
+        _hasMore = results.meta!.totalCount! > _invoiceList.length;
+      }
+    } catch (e) {
+      debugPrint('Invoice load error: $e');
+      rethrow;
     }
   }
 
@@ -149,6 +154,33 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                   }
                 case ConnectionState.done:
                   {
+                    if (snapshot.hasError) {
+                      return Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.wifi_off_rounded, size: 52, color: Color(0xFF9AA3C2)),
+                              const SizedBox(height: 14),
+                              const Text('Unable to load invoices',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF0D1135))),
+                              const SizedBox(height: 6),
+                              const Text('Check your connection and try again',
+                                  style: TextStyle(fontSize: 13, color: Colors.grey)),
+                              const SizedBox(height: 20),
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.refresh_rounded, size: 16),
+                                label: const Text('Retry'),
+                                onPressed: () => setState(() {
+                                  _invoiceList.clear();
+                                  _invoiceData = _loadInvoices();
+                                }),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
                     if (_invoiceList.isEmpty) {
                       return const Expanded(
                         child: Center(child: Text('No invoices found.')),

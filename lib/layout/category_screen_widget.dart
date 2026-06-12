@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/category_product_screen_widget.dart';
 import 'package:mandel_mobile_app/model/category_dto.dart';
@@ -6,6 +5,80 @@ import 'package:mandel_mobile_app/service/category_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:shimmer/shimmer.dart';
+
+const Map<String, IconData> _kCatIcons = {
+  'Cigarettes':        Icons.smoking_rooms_rounded,
+  'Cigars':            Icons.smoking_rooms_rounded,
+  'Little Cigars':     Icons.smoking_rooms_rounded,
+  'Smokeless':         Icons.grass_rounded,
+  'Modern Smokeless':  Icons.bolt_rounded,
+  'E-Cig/Vapor':       Icons.cloud_rounded,
+  'Snacks':            Icons.fastfood_rounded,
+  'Candy':             Icons.icecream_rounded,
+  'Beverages':         Icons.local_drink_rounded,
+  'Energy Drinks':     Icons.bolt_rounded,
+  'Water':             Icons.water_drop_rounded,
+  'Juice':             Icons.emoji_food_beverage_rounded,
+  'Beer':              Icons.sports_bar_rounded,
+  'Wine':              Icons.wine_bar_rounded,
+  'Spirits':           Icons.liquor_rounded,
+  'Rolling Paper':     Icons.article_rounded,
+  'Papers':            Icons.article_rounded,
+  'Wraps':             Icons.receipt_long_rounded,
+  'Accessories':       Icons.stars_rounded,
+  'General':           Icons.shopping_bag_rounded,
+  'Food':              Icons.restaurant_rounded,
+  'Household':         Icons.home_rounded,
+  'Health':            Icons.health_and_safety_rounded,
+  'Personal Care':     Icons.spa_rounded,
+  'Ice Cream':         Icons.icecream_rounded,
+  'Chips':             Icons.fastfood_rounded,
+  'Cookies':           Icons.cookie_rounded,
+  'Gum':               Icons.circle_rounded,
+  'Mints':             Icons.circle_rounded,
+};
+
+const Map<String, Color> _kCatColors = {
+  'Cigarettes':        Color(0xFF7C3AED),
+  'Cigars':            Color(0xFF6D28D9),
+  'Little Cigars':     Color(0xFF5B21B6),
+  'Smokeless':         Color(0xFF4C1D95),
+  'Modern Smokeless':  Color(0xFF3730A3),
+  'E-Cig/Vapor':       Color(0xFF0284C7),
+  'Snacks':            Color(0xFFF59E0B),
+  'Candy':             Color(0xFFEC4899),
+  'Beverages':         Color(0xFF0EA5E9),
+  'Energy Drinks':     Color(0xFF10B981),
+  'Water':             Color(0xFF06B6D4),
+  'Juice':             Color(0xFFFF6B35),
+  'Beer':              Color(0xFFD97706),
+  'Wine':              Color(0xFF9D174D),
+  'Spirits':           Color(0xFF92400E),
+  'Rolling Paper':     Color(0xFF64748B),
+  'Papers':            Color(0xFF475569),
+  'Wraps':             Color(0xFF78716C),
+  'Accessories':       Color(0xFF4F46E5),
+  'General':           Color(0xFF6366F1),
+  'Food':              Color(0xFFEF4444),
+  'Household':         Color(0xFF14B8A6),
+  'Health':            Color(0xFF22C55E),
+  'Personal Care':     Color(0xFFE879F9),
+  'Ice Cream':         Color(0xFFF472B6),
+  'Chips':             Color(0xFFFBBF24),
+  'Cookies':           Color(0xFF92400E),
+  'Gum':               Color(0xFF4ADE80),
+  'Mints':             Color(0xFF34D399),
+};
+
+Color _catColorFallback(int index) {
+  const palette = [
+    Color(0xFF6366F1), Color(0xFF0EA5E9), Color(0xFFF59E0B),
+    Color(0xFF10B981), Color(0xFFEC4899), Color(0xFFEF4444),
+    Color(0xFF8B5CF6), Color(0xFF14B8A6), Color(0xFFD97706),
+    Color(0xFF22C55E), Color(0xFF0284C7), Color(0xFFDB2777),
+  ];
+  return palette[index % palette.length];
+}
 
 class CategoryScreenWidget extends StatefulWidget {
   const CategoryScreenWidget({super.key});
@@ -50,6 +123,7 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF0F2FA),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -71,13 +145,25 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
 
   Widget _buildTitle() {
     return Container(
-      margin: const EdgeInsets.only(left: 20, top: 54, bottom: 20),
-      child: const Text(
-        'Categories',
-        style: TextStyle(
-          color: CommonCustomColor.defaultTextColor,
-          fontSize: 24,
-          fontWeight: FontWeight.w500,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF0C0F1E), Color(0xFF1B2860)],
+          begin: Alignment.topLeft, end: Alignment.bottomRight),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: const Text(
+            'Categories',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
         ),
       ),
     );
@@ -85,56 +171,40 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
 
   Widget _buildFilterField() {
     return Container(
-      margin: const EdgeInsets.only(right: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(left: 10, right: 10),
-            child: IconButton(
-              icon: Image.asset(
-                'assets/images/mandel_angle_left.png',
-                width: 25,
-                height: 24,
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ),
-          Flexible(
-            child: TextFormField(
-              enabled: true,
-              controller: _searchFieldController,
-              onChanged: (value) {
-                setState(() {
-                  if (_searchFieldController.text.isNotEmpty) {
-                    filters!['name'] = _searchFieldController.text;
-                  } else {
-                    filters!.remove('name');
-                  }
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'Search for category',
-                hintStyle: const TextStyle(
-                    color: CommonCustomColor.menuItemColor, fontSize: 14),
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: const Color(0xFFEEEEEE),
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(vertical: 10.0),
-                suffixIcon: IconButton(
-                  onPressed: _searchFieldController.clear,
-                  icon: const Icon(
-                    Icons.close,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+      margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: TextFormField(
+        controller: _searchFieldController,
+        onChanged: (value) {
+          setState(() {
+            if (value.isNotEmpty) {
+              filters!['name'] = value;
+            } else {
+              filters!.remove('name');
+            }
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'Search categories…',
+          hintStyle: const TextStyle(color: Color(0xFF9AA3C2), fontSize: 14),
+          prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF9AA3C2)),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 1.5)),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          suffixIcon: _searchFieldController.text.isNotEmpty
+            ? IconButton(
+                onPressed: () => setState(() { _searchFieldController.clear(); filters!.remove('name'); }),
+                icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF9AA3C2)))
+            : null,
+        ),
       ),
     );
   }
@@ -216,59 +286,51 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
         if (result.connectionState == ConnectionState.done && result.hasData) {
           return Expanded(
             child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
                 itemCount: result.data!.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3),
+                    crossAxisCount: 3, childAspectRatio: 0.88,
+                    crossAxisSpacing: 8, mainAxisSpacing: 8),
                 itemBuilder: (_, index) {
-                  return Column(
-                    children: [
-                      Container(
-                        width: 86.0,
-                        height: 87.0,
-                        margin: const EdgeInsets.only(bottom: 5),
-                        decoration: const BoxDecoration(
-                          color: CommonCustomColor.fieldColor,
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        child: IconButton(
-                          icon: result.data![index].media!.isNotEmpty
-                              ? Image.network(
-                                  CommonConstants.mandelImageBaseUrl +
-                                      result.data![index].media![0].url!,
-                                  width: 69,
-                                  height: 75,
-                                )
-                              : Image.asset(
-                                  'assets/images/mandel_no_image.jpg',
-                                  height: 69,
-                                  width: 75,
-                                ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      CategoryProductScreenWidget(
-                                          categoryDto: result.data![index])),
-                            );
-                          },
-                        ),
+                  final cat = result.data![index];
+                  final name = cat.name ?? '';
+                  final icon = _kCatIcons[name] ?? Icons.category_rounded;
+                  final color = _kCatColors[name] ?? _catColorFallback(index);
+                  return GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => CategoryProductScreenWidget(categoryDto: cat))),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [color.withOpacity(0.18), color.withOpacity(0.06)],
+                          begin: Alignment.topLeft, end: Alignment.bottomRight),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: color.withOpacity(0.22)),
                       ),
-                      SizedBox(
-                        width: 100,
-                        child: Center(
-                          child: Text(
-                            result.data![index].name ??
-                                CommonConstants.emptyRecodeIndicator,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 52, height: 52,
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(0.15),
+                              shape: BoxShape.circle),
+                            child: Icon(icon, color: color, size: 26),
                           ),
-                        ),
-                      )
-                    ],
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text(name,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11, fontWeight: FontWeight.w700,
+                                color: color, height: 1.2)),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 }),
           );
@@ -312,35 +374,19 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
   }
 
   Widget _buildImageView(CategoryDto categoryDto) {
+    final name = categoryDto.name ?? '';
+    final icon = _kCatIcons[name] ?? Icons.category_rounded;
+    final colorIdx = (categoryDto.id ?? 0) % 12;
+    final color = _kCatColors[name] ?? _catColorFallback(colorIdx);
     return Container(
-      width: 57,
-      height: 57,
-      margin: const EdgeInsets.only(right: 20),
+      width: 52, height: 52,
+      margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-          border: Border.all(
-              color: CommonCustomColor.menuItemColor.withOpacity(0.5)),
-          borderRadius: BorderRadius.circular(10)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: Container(
-          margin: const EdgeInsets.all(3),
-          child: Center(
-              child: categoryDto.media!.isNotEmpty
-                  ? Image.network(
-                      CommonConstants.mandelImageBaseUrl +
-                          categoryDto.media![0].url!,
-                      fit: BoxFit.cover,
-                      height: 57,
-                      width: 57,
-                    )
-                  : Image.asset(
-                      'assets/images/mandel_no_image.jpg',
-                      fit: BoxFit.cover,
-                      height: 57,
-                      width: 57,
-                    )),
-        ),
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
+      child: Icon(icon, color: color, size: 26),
     );
   }
 

@@ -214,53 +214,60 @@ class ProductListWidgetState extends State<ProductListWidget> {
   }
 
   Widget _buildTabListOnly(List<CategoryDto>? categoryList) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(categoryList!.length, (index) {
-          final cat = categoryList[index];
-          final isSelected = (filters['category'] == cat.name) ||
-              (index == 0 && filters['category'] == null && filters['isOnDeal'] == null && filters['isNewItem'] == null) ||
-              (index == 1 && filters['isOnDeal'] == true) ||
-              (index == 2 && filters['isNewItem'] == true);
-          return GestureDetector(
-            onTap: () {
-              filters.remove('category');
-              filters.remove('isOnDeal');
-              filters.remove('isNewItem');
-              if (index == 0) {
-                // ALL
-              } else if (index == 1) {
-                filters['isOnDeal'] = true;
-              } else if (index == 2) {
-                filters['isNewItem'] = true;
-              } else {
-                filters['category'] = cat.name;
-              }
-              filters['page'] = 0;
-              _initProductLoad = true;
-              _initProductFetching = true;
-              _loadProductList();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(
-                  color: isSelected ? const Color(0xFF2E7D32) : Colors.transparent,
-                  width: 2,
-                )),
-              ),
-              child: Text(
-                cat.name ?? '',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? const Color(0xFF2E7D32) : Colors.black54,
+    return Container(
+      color: Colors.white,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Row(
+          children: List.generate(categoryList!.length, (index) {
+            final cat = categoryList[index];
+            final isSelected = (filters['category'] == cat.name) ||
+                (index == 0 && filters['category'] == null && filters['isOnDeal'] == null && filters['isNewItem'] == null) ||
+                (index == 1 && filters['isOnDeal'] == true) ||
+                (index == 2 && filters['isNewItem'] == true);
+            return GestureDetector(
+              onTap: () {
+                filters.remove('category');
+                filters.remove('isOnDeal');
+                filters.remove('isNewItem');
+                if (index == 0) {
+                  // ALL
+                } else if (index == 1) {
+                  filters['isOnDeal'] = true;
+                } else if (index == 2) {
+                  filters['isNewItem'] = true;
+                } else {
+                  filters['category'] = cat.name;
+                }
+                filters['page'] = 0;
+                _initProductLoad = true;
+                _initProductFetching = true;
+                _loadProductList();
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF0D1135) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? const Color(0xFF0D1135) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Text(
+                  cat.name ?? '',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -343,14 +350,13 @@ class ProductListWidgetState extends State<ProductListWidget> {
     if (productList.isNotEmpty) {
       return ListView.separated(
           physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.only(
+            top: 6,
+            bottom: MediaQuery.of(context).padding.bottom + 80,
+          ),
           controller: _scrollController,
           itemCount: productList.length + 1,
-          separatorBuilder: (context, index) {
-            return const Divider(
-              indent: 20.0,
-              endIndent: 20.0,
-            );
-          },
+          separatorBuilder: (context, index) => const SizedBox.shrink(),
           itemBuilder: (BuildContext context, int index) {
             if (index < productList.length) {
               return _buildListItem(productList[index], index);
@@ -395,8 +401,16 @@ class ProductListWidgetState extends State<ProductListWidget> {
 
   Widget _buildListItem(ProductDto productDto, int index) {
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10, top: 10),
+      margin: const EdgeInsets.only(left: 10, right: 10, bottom: 5, top: 5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(
+          color: const Color(0xFF0D1135).withOpacity(0.07),
+          blurRadius: 8, offset: const Offset(0, 2))],
+      ),
       child: InkWell(
+        borderRadius: BorderRadius.circular(14),
         onTap: () {
           _storeSearchHistory();
           Navigator.push(
@@ -415,20 +429,23 @@ class ProductListWidgetState extends State<ProductListWidget> {
             ),
           );
         },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildImageView(productDto),
-                _buildInformation(productDto),
-                const Spacer(flex: 1),
-                _buildPricing(productDto)
-              ],
-            ),
-            _buildDealList(productDto)
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildImageView(productDto),
+                  _buildInformation(productDto),
+                  const Spacer(flex: 1),
+                  _buildPricing(productDto)
+                ],
+              ),
+              _buildDealList(productDto)
+            ],
+          ),
         ),
       ),
     );
@@ -473,38 +490,40 @@ class ProductListWidgetState extends State<ProductListWidget> {
     final bool onSale = salePriceEntry != null;
     final bool isNew = productDt.isNew == true;
     return Container(
-      margin: const EdgeInsets.only(right: 20),
+      margin: const EdgeInsets.only(right: 14),
       decoration: BoxDecoration(
           border: Border.all(
             color: onSale
-                ? const Color(0xFFdc2626).withOpacity(0.6)
-                : CommonCustomColor.menuItemColor.withOpacity(0.5)),
-          borderRadius: BorderRadius.circular(10)),
+                ? const Color(0xFFdc2626).withOpacity(0.5)
+                : const Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(12)),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(11),
         child: Container(
-          margin: const EdgeInsets.all(3),
-          width: 57,
-          height: 57,
+          width: 70,
+          height: 70,
+          color: const Color(0xFFF8FAFC),
           child: Stack(
             children: [
               hasImage
-                ? MandelNetworkImage(url: imageUrl, width: 57, height: 57)
-                : Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
+                ? MandelNetworkImage(url: imageUrl, width: 70, height: 70)
+                : Image.asset('assets/images/mandel_no_image.jpg', width: 70, height: 70, fit: BoxFit.cover),
               // NEW badge (green) — top-left corner
               if (isNew)
                 Positioned(
                   top: 0, left: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF16a34a),
-                      borderRadius: BorderRadius.circular(3),
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF16a34a),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(11),
+                        bottomRight: Radius.circular(7)),
                     ),
                     child: const Text('NEW',
                       style: TextStyle(
-                        color: Colors.white, fontSize: 7,
-                        fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                        color: Colors.white, fontSize: 9,
+                        fontWeight: FontWeight.w900, letterSpacing: 0.8)),
                   ),
                 ),
               // Sale badge (red) takes priority over deal badge (bottom)
@@ -512,33 +531,35 @@ class ProductListWidgetState extends State<ProductListWidget> {
                 Positioned(
                   bottom: 0, left: 0, right: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
                         colors: [Color(0xFFdc2626), Color(0xFF991b1b)]),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(11), bottomRight: Radius.circular(11)),
                     ),
                     child: const Text('SALE',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white, fontSize: 8,
-                        fontWeight: FontWeight.w900, letterSpacing: 0.8)),
+                        color: Colors.white, fontSize: 9,
+                        fontWeight: FontWeight.w900, letterSpacing: 1.0)),
                   ),
                 )
               else if (deal != null)
                 Positioned(
                   bottom: 0, left: 0, right: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
                         colors: [Color(0xFFf0560f), Color(0xFFe03a00)]),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(11), bottomRight: Radius.circular(11)),
                     ),
                     child: Text(deal.badge,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white, fontSize: 8,
+                        color: Colors.white, fontSize: 9,
                         fontWeight: FontWeight.w900, height: 1.2)),
                   ),
                 ),
