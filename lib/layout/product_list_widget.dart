@@ -13,6 +13,7 @@ import 'package:mandel_mobile_app/model/product_dto.dart';
 import 'package:mandel_mobile_app/model/product_search_result_dto.dart';
 import 'package:mandel_mobile_app/service/category_service.dart';
 import 'package:mandel_mobile_app/service/product_service.dart';
+import 'package:mandel_mobile_app/layout/common_custom_widget/mandel_network_image.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -442,13 +443,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
           width: 57,
           height: 57,
           child: hasImage
-            ? Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                width: 57,
-                height: 57,
-                errorBuilder: (_, __, ___) => Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
-              )
+            ? MandelNetworkImage(url: imageUrl, width: 57, height: 57)
             : Image.asset('assets/images/mandel_no_image.jpg', width: 57, height: 57, fit: BoxFit.cover),
         ),
       ),

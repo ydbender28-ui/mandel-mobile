@@ -95,9 +95,12 @@ class _NavTab extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 6),
-          Icon(icon, size: 24),
-          const SizedBox(height: 3),
-          Text(label),
+          Icon(icon, size: 22),
+          const SizedBox(height: 2),
+          Text(label,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 9)),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/db/repository/order_repository.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/common_number_picker.dart';
+import 'package:mandel_mobile_app/layout/common_custom_widget/mandel_network_image.dart';
 import 'package:mandel_mobile_app/model/product_dto.dart';
 import 'package:mandel_mobile_app/utility/common_cart_utility.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
@@ -70,20 +71,13 @@ class AddToCartDialog extends CommonCartUtility {
                       Container(
                         margin: const EdgeInsets.all(3),
                         child: Center(
-                            child: Image.network(
-                          (productDto.productImages?.isNotEmpty == true ? (productDto.productImages![0].url ?? '') : ''),
-                          fit: BoxFit.cover,
-                          height: 245,
-                          width: 245,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Image.asset(
-                              'assets/images/mandel_no_image.jpg',
-                              fit: BoxFit.cover,
-                              height: 245,
-                              width: 245,
-                            );
-                          },
-                        )),
+                          child: () {
+                            final url = productDto.productImages?.isNotEmpty == true ? (productDto.productImages![0].url ?? '') : '';
+                            return url.startsWith('http')
+                              ? MandelNetworkImage(url: url, width: 245, height: 245)
+                              : Image.asset('assets/images/mandel_no_image.jpg', fit: BoxFit.cover, height: 245, width: 245);
+                          }(),
+                        ),
                       ),
                       Container(
                         margin: const EdgeInsets.only(bottom: 20, top: 10),

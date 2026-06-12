@@ -107,8 +107,6 @@ class _DealSwiperWidgetState extends State<DealSwiperWidget> {
                   baseColor: Colors.grey.shade300,
                   highlightColor: Colors.grey.shade100,
                   child: Container(
-                    width: 57,
-                    height: 57,
                     decoration: const BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.all(Radius.circular(5.0))),

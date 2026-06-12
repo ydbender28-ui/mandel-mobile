@@ -99,6 +99,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
 
   Widget _header() {
     return Container(
+      width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [_h1, _h2],

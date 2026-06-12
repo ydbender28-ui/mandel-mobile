@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:mandel_mobile_app/layout/common_custom_widget/mandel_network_image.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/round_number_picker.dart';
 import 'package:mandel_mobile_app/model/order_dto.dart';
 import 'package:mandel_mobile_app/model/order_item_dto.dart';
@@ -211,23 +212,16 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
   }
 
   _buildProductImage(ProductDto productDto) {
+    final url = (productDto.productImages?.isNotEmpty == true && productDto.productImages![0].url != null)
+        ? productDto.productImages![0].url!
+        : '';
     return Container(
       margin: const EdgeInsets.only(left: 10, right: 20, bottom: 10),
       child: Center(
-          child: Image.network(
-        (productDto.productImages?.isNotEmpty == true && productDto.productImages![0].url != null) ? productDto.productImages![0].url! : '',
-        fit: BoxFit.cover,
-        height: 245,
-        width: 245,
-        errorBuilder: (context, error, stackTrace) {
-          return Image.asset(
-            'assets/images/mandel_no_image.jpg',
-            fit: BoxFit.cover,
-            height: 245,
-            width: 245,
-          );
-        },
-      )),
+        child: url.startsWith('http')
+          ? MandelNetworkImage(url: url, width: 245, height: 245)
+          : Image.asset('assets/images/mandel_no_image.jpg', fit: BoxFit.cover, height: 245, width: 245),
+      ),
     );
   }
 
