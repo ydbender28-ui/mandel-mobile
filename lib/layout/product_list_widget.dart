@@ -1,26 +1,25 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:dio/dio.dart';
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/order_and_return_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/view_cart_widget.dart';
 import 'package:mandel_mobile_app/model/category_dto.dart';
-import 'package:mandel_mobile_app/model/price_dto.dart';
 import 'package:mandel_mobile_app/model/product_details_options.dart';
 import 'package:mandel_mobile_app/model/product_dto.dart';
 import 'package:mandel_mobile_app/model/product_search_result_dto.dart';
 import 'package:mandel_mobile_app/service/category_service.dart';
+import 'package:mandel_mobile_app/service/last_order_service.dart';
 import 'package:mandel_mobile_app/service/product_service.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/mandel_network_image.dart';
 import 'package:mandel_mobile_app/model/portal_deal_dto.dart';
 import 'package:mandel_mobile_app/model/portal_sale_dto.dart';
 import 'package:mandel_mobile_app/service/ads_service.dart';
 import 'package:mandel_mobile_app/service/sales_service.dart';
+import 'package:mandel_mobile_app/utility/cart_state.dart';
+import 'package:mandel_mobile_app/utility/common_cart_utility.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
-import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -28,11 +27,13 @@ class ProductListWidget extends StatefulWidget {
   final int startingTab;
   final Map<String, dynamic> initialFilters;
   final ProductDetailsOptions productDetailsOptions;
+  final bool showCartOverlay;
   const ProductListWidget(
       {super.key,
       required this.initialFilters,
       required this.productDetailsOptions,
-      this.startingTab = 0});
+      this.startingTab = 0,
+      this.showCartOverlay = true});
 
   @override
   State<ProductListWidget> createState() => ProductListWidgetState();
@@ -64,6 +65,12 @@ class ProductListWidgetState extends State<ProductListWidget> {
   List<PortalDealDto> _portalDeals = [];
   List<PortalSaleDto> _portalSales = [];
 
+  // Last order history: productId → {qty, date}
+  Map<int, LastOrderInfo> _lastOrders = {};
+
+  // Per-product qty currently in cart (for quick-add controls)
+  final Map<int, int> _cartQtys = {};
+
   // Store the category future so it's only created once (not on every rebuild)
   late Future<List<CategoryDto>> _categoryFuture;
 
@@ -77,6 +84,14 @@ class ProductListWidgetState extends State<ProductListWidget> {
     Future.microtask(() => _loadProductList());
     AdsService().getDeals().then((d) { if (mounted) setState(() => _portalDeals = d); });
     SalesService().getSales().then((s) { if (mounted) setState(() => _portalSales = s); });
+    // Load last-order history (best-effort, non-blocking)
+    LastOrderService().getLastOrders().then((m) { if (mounted) setState(() => _lastOrders = m); });
+    // Seed quick-add qtys from existing cart
+    for (final item in CartState.items) {
+      if (item.productId != null && item.qty != null) {
+        _cartQtys[item.productId!] = item.qty!;
+      }
+    }
   }
 
   @override
@@ -120,12 +135,6 @@ class ProductListWidgetState extends State<ProductListWidget> {
     categoryList.add(CategoryDto(id: 0, name: 'Deals Only'));
     categoryList.add(CategoryDto(id: 0, name: 'New Items'));
     categoryList.addAll(categories);
-    // if (200 == response.statusCode) {
-    //   categoryList.add(CategoryDto(id: 0, name: 'ALL'));
-    //   categoryList.addAll((response.data as List)
-    //       .map((data) => CategoryDto.fromJson(data))
-    //       .toList());
-    // }
     return categoryList;
   }
 
@@ -178,8 +187,53 @@ class ProductListWidgetState extends State<ProductListWidget> {
         CommonConstants.itemFilterHistoryList, filterHistory.toList());
   }
 
+  // Quick-add: set qty for a product in the cart
+  void _setQty(ProductDto product, int qty) {
+    final pid = product.id;
+    if (pid == null) return;
+    setState(() {
+      if (qty <= 0) {
+        _cartQtys.remove(pid);
+        CartState.removeItem(pid);
+      } else {
+        _cartQtys[pid] = qty;
+        CommonCartUtility().addToCart(productDto: product, qty: qty);
+      }
+    });
+    _streamControllers.sink.add('done');
+  }
+
+  // Format last-ordered date as a short relative string
+  String _formatLastOrderDate(String isoDate) {
+    if (isoDate.isEmpty) return '';
+    try {
+      final d = DateTime.parse(isoDate);
+      final diff = DateTime.now().difference(d).inDays;
+      if (diff == 0) return 'today';
+      if (diff == 1) return 'yesterday';
+      if (diff < 7) return '${diff}d ago';
+      if (diff < 30) return '${(diff / 7).floor()}w ago';
+      final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return '${months[d.month - 1]} ${d.day}';
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!widget.showCartOverlay) {
+      return Column(children: [
+        FutureBuilder(
+          future: _categoryFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) return _buildTabListOnly(snapshot.data);
+            return _buildShimmerTabView();
+          },
+        ),
+        Flexible(child: _buildProductList()),
+      ]);
+    }
     return Stack(
       children: [
         Column(
@@ -284,9 +338,6 @@ class ProductListWidgetState extends State<ProductListWidget> {
   }
 
   _buildTabList(List<CategoryDto>? categoryList) {
-    // DefaultTabController.of(context).addListener(() {
-    //   print("Listing to tab change");
-    // });
     List<Tab> tabList = [];
     for (var element in categoryList!) {
       tabList.add(Tab(
@@ -298,7 +349,6 @@ class ProductListWidgetState extends State<ProductListWidget> {
       isScrollable: true,
       tabs: tabList,
       onTap: (index) {
-        // _scrollController.position
         filters.remove('category');
         filters.remove('isOnDeal');
         filters.remove('isNewItem');
@@ -415,6 +465,9 @@ class ProductListWidgetState extends State<ProductListWidget> {
   }
 
   Widget _buildListItem(ProductDto productDto, int index) {
+    final int currentQty = _cartQtys[productDto.id] ?? 0;
+    final lastOrder = productDto.id != null ? _lastOrders[productDto.id!] : null;
+
     return Container(
       margin: const EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
       child: ClipRRect(
@@ -425,18 +478,23 @@ class ProductListWidgetState extends State<ProductListWidget> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.14),
-                  Colors.white.withOpacity(0.06),
+                  Colors.white.withOpacity(currentQty > 0 ? 0.18 : 0.14),
+                  Colors.white.withOpacity(currentQty > 0 ? 0.10 : 0.06),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.20), width: 1.5),
+                color: currentQty > 0
+                    ? const Color(0xFF818CF8).withOpacity(0.5)
+                    : Colors.white.withOpacity(0.20),
+                width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF4F46E5).withOpacity(0.18),
+                  color: currentQty > 0
+                      ? const Color(0xFF818CF8).withOpacity(0.28)
+                      : const Color(0xFF4F46E5).withOpacity(0.18),
                   blurRadius: 24, offset: const Offset(0, 8)),
                 BoxShadow(
                   color: Colors.black.withOpacity(0.25),
@@ -461,7 +519,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
                 ));
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -475,6 +533,33 @@ class ProductListWidgetState extends State<ProductListWidget> {
                       ],
                     ),
                     _buildDealList(productDto),
+                    const SizedBox(height: 10),
+                    // Quick-add controls + last order info
+                    Row(
+                      children: [
+                        // +/- controls
+                        _buildQuickAdd(productDto, currentQty),
+                        const Spacer(),
+                        // Last ordered info (right-aligned)
+                        if (lastOrder != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.history_rounded,
+                                size: 11,
+                                color: Colors.white.withOpacity(0.38)),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Last: ${lastOrder.qty}× · ${_formatLastOrderDate(lastOrder.date)}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white.withOpacity(0.38),
+                                  fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -482,6 +567,58 @@ class ProductListWidgetState extends State<ProductListWidget> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildQuickAdd(ProductDto product, int qty) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (qty > 0) ...[
+          _QtyBtn(
+            icon: Icons.remove,
+            onTap: () => _setQty(product, qty - 1),
+            filled: true,
+          ),
+          Container(
+            constraints: const BoxConstraints(minWidth: 32),
+            alignment: Alignment.center,
+            child: Text(
+              '$qty',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+        _QtyBtn(
+          icon: Icons.add,
+          onTap: () => _setQty(product, qty + 1),
+          filled: qty > 0,
+          highlight: qty == 0,
+        ),
+        if (qty > 0) ...[
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFF818CF8).withOpacity(0.18),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: const Color(0xFF818CF8).withOpacity(0.35)),
+            ),
+            child: Text(
+              'in cart',
+              style: TextStyle(
+                fontSize: 10,
+                color: const Color(0xFF818CF8).withOpacity(0.9),
+                fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -745,6 +882,39 @@ class ProductListWidgetState extends State<ProductListWidget> {
           scrollDirection: Axis.horizontal,
           child: Row(children: [...deals]),
         ),
+      ),
+    );
+  }
+}
+
+// Small circular +/- button for quick-add
+class _QtyBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool filled;
+  final bool highlight;
+  const _QtyBtn({required this.icon, required this.onTap, this.filled = false, this.highlight = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28, height: 28,
+        decoration: BoxDecoration(
+          color: highlight
+              ? const Color(0xFF818CF8).withOpacity(0.25)
+              : filled
+                  ? Colors.white.withOpacity(0.18)
+                  : Colors.white.withOpacity(0.10),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: highlight
+                ? const Color(0xFF818CF8).withOpacity(0.5)
+                : Colors.white.withOpacity(0.15),
+            width: 1),
+        ),
+        child: Icon(icon, color: Colors.white, size: 15),
       ),
     );
   }

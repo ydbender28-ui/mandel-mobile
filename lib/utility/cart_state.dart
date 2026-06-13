@@ -9,6 +9,10 @@ class CartState {
   static final List<OrderItemEntity> _items = [];
   static Timer? _syncTimer;
 
+  // Broadcast stream — listeners rebuild when cart changes
+  static final StreamController<void> _changes = StreamController.broadcast();
+  static Stream<void> get changes => _changes.stream;
+
   static List<OrderItemEntity> get items => List.unmodifiable(_items);
 
   static bool isItemExist(int productId) =>
@@ -23,12 +27,28 @@ class CartState {
     }
     _save();
     _scheduleSync();
+    _changes.add(null);
   }
 
   static void removeItem(int productId) {
     _items.removeWhere((i) => i.productId == productId);
     _save();
     _scheduleSync();
+    _changes.add(null);
+  }
+
+  static void updateQty(int productId, int qty) {
+    final idx = _items.indexWhere((i) => i.productId == productId);
+    if (idx < 0) return;
+    if (qty <= 0) {
+      _items.removeAt(idx);
+    } else {
+      _items[idx].qty = qty;
+      _items[idx].subTotal = (_items[idx].unitPrice ?? 0) * qty;
+    }
+    _save();
+    _scheduleSync();
+    _changes.add(null);
   }
 
   static void clear() {
@@ -36,6 +56,7 @@ class CartState {
     _save();
     CartSyncService().clearServerCart();
     _syncTimer?.cancel();
+    _changes.add(null);
   }
 
   // Debounced push: waits 2 s after last change before syncing to server

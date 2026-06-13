@@ -380,32 +380,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
   }
 
   void _showAddProductSheet() {
-    showModalBottomSheet(
-      context: context,
-      isDismissible: true,
-      isScrollControlled: true,
-      builder: (ctx) => MultiActionConfirmationWidget(
-        title: 'Add Products',
-        description: 'Search for products or scan barcodes to build your order.',
-        actions: [
-          ConfirmationAction(
-            text: 'Scan Barcodes',
-            onSelect: () {
-              Navigator.of(context).pop();
-              navigateToDefaultScanner(context, ScannerArguments(
-                enableRapidMode: true,
-                productDetailsOptions: ProductDetailsOptions(showAddToCart: true, showReturn: false)));
-            }),
-          ConfirmationAction(
-            text: 'Search Products',
-            onSelect: () => Navigator.of(context).popAndPushNamed(
-              CommonConstants.searchScreenUrl,
-              arguments: ProductSearchArguments(
-                filters: {}, startingIndex: 0,
-                productDetailsOptions: ProductDetailsOptions(showAddToCart: true, showReturn: false)))),
-        ],
-      ),
-    );
+    Navigator.of(context).pushNamed(CommonConstants.quickOrderScreen);
   }
 }
 
