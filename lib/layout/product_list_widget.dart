@@ -38,11 +38,15 @@ class ProductListWidget extends StatefulWidget {
   State<ProductListWidget> createState() => ProductListWidgetState();
 }
 
-class ProductListWidgetState extends State<ProductListWidget> {
+class ProductListWidgetState extends State<ProductListWidget>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   final _productService = ProductService();
 
   ///
-  Map<String, dynamic> filters = <String, dynamic>{"page": 0, "pageSize": 50};
+  Map<String, dynamic> filters = <String, dynamic>{"page": 0, "pageSize": 5000};
 
   ///
   final _scrollController = ScrollController();
@@ -221,6 +225,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (!widget.showCartOverlay) {
       return Column(children: [
         FutureBuilder(

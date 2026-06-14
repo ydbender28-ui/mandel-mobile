@@ -21,7 +21,9 @@ class QuickOrderScreen extends StatefulWidget {
 }
 
 class _QuickOrderScreenState extends State<QuickOrderScreen>
-    with BarcodeScannerUtility {
+    with BarcodeScannerUtility, AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   final _searchCtrl = TextEditingController();
   final _listKey = GlobalKey<ProductListWidgetState>();
 
@@ -37,6 +39,7 @@ class _QuickOrderScreenState extends State<QuickOrderScreen>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent));
 
