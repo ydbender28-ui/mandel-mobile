@@ -4,6 +4,7 @@ import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/product_list_widget.dart';
 import 'package:mandel_mobile_app/model/product_details_options.dart';
 import 'package:mandel_mobile_app/model/product_search_arguments.dart';
+import 'package:mandel_mobile_app/utility/common_constants.dart';
 
 class ProductScreenWidget extends StatefulWidget {
   const ProductScreenWidget({super.key});
@@ -153,6 +154,34 @@ class _ProductScreenWidgetState extends State<ProductScreenWidget> {
                   else
                     const SizedBox(width: 10),
                 ]),
+              ),
+              const SizedBox(height: 10),
+              // Search by Barcode button
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(
+                    context, CommonConstants.productScannerScreenUrl),
+                child: Container(
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.07),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Colors.white.withOpacity(0.15), width: 1),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.qr_code_scanner_rounded,
+                          size: 16, color: Colors.white.withOpacity(0.7)),
+                      const SizedBox(width: 7),
+                      Text('Search by Barcode',
+                          style: TextStyle(
+                              color: Colors.white.withOpacity(0.7),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
               ),
             ]),
           ),
