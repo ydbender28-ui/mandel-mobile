@@ -194,7 +194,7 @@ class ProductListWidgetState extends State<ProductListWidget>
   }
 
   // Quick-add: set qty for a product in the cart
-  void _setQty(ProductDto product, int qty) {
+  void _setQty(ProductDto product, int qty, {double? unitPrice}) {
     final pid = product.id;
     if (pid == null) return;
     setState(() {
@@ -203,7 +203,7 @@ class ProductListWidgetState extends State<ProductListWidget>
         CartState.removeItem(pid);
       } else {
         _cartQtys[pid] = qty;
-        CommonCartUtility().addToCart(productDto: product, qty: qty);
+        CommonCartUtility().addToCart(productDto: product, qty: qty, unitPrice: unitPrice);
       }
     });
     _streamControllers.sink.add('done');
@@ -474,6 +474,17 @@ class ProductListWidgetState extends State<ProductListWidget>
   Widget _buildListItem(ProductDto productDto, int index) {
     final int currentQty = _cartQtys[productDto.id] ?? 0;
     final lastOrder = productDto.id != null ? _lastOrders[productDto.id!] : null;
+    final sEntry = _saleEntryFor(productDto);
+    final dEntry = sEntry == null ? _dealFor(productDto) : null;
+    double? discountedPrice;
+    if (sEntry != null) {
+      discountedPrice = sEntry.salePrice;
+    } else if (dEntry != null && dEntry.type != 'BULK' && dEntry.discountAmount > 0) {
+      final base = productDto.getNonFormatPrice();
+      discountedPrice = dEntry.discountType == 'PERCENT'
+          ? base * (1 - dEntry.discountAmount / 100)
+          : (base - dEntry.discountAmount).clamp(0.0, double.infinity);
+    }
 
     return Container(
       margin: const EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
@@ -514,17 +525,6 @@ class ProductListWidgetState extends State<ProductListWidget>
               highlightColor: Colors.white.withOpacity(0.04),
               onTap: () {
                 _storeSearchHistory();
-                final sEntry = _saleEntryFor(productDto);
-                final dEntry = sEntry == null ? _dealFor(productDto) : null;
-                double? discountedPrice;
-                if (sEntry != null) {
-                  discountedPrice = sEntry.salePrice;
-                } else if (dEntry != null && dEntry.type != 'BULK' && dEntry.discountAmount > 0) {
-                  final base = productDto.getNonFormatPrice();
-                  discountedPrice = dEntry.discountType == 'PERCENT'
-                      ? base * (1 - dEntry.discountAmount / 100)
-                      : (base - dEntry.discountAmount).clamp(0.0, double.infinity);
-                }
                 Navigator.push(context, MaterialPageRoute(
                   builder: (context) => OrderAndReturnScreenWidget(
                     productDto: productDto,
@@ -557,7 +557,7 @@ class ProductListWidgetState extends State<ProductListWidget>
                     Row(
                       children: [
                         // +/- controls
-                        _buildQuickAdd(productDto, currentQty),
+                        _buildQuickAdd(productDto, currentQty, salePrice: discountedPrice),
                         const Spacer(),
                         // Last ordered info (right-aligned)
                         if (lastOrder != null)
@@ -589,14 +589,14 @@ class ProductListWidgetState extends State<ProductListWidget>
     );
   }
 
-  Widget _buildQuickAdd(ProductDto product, int qty) {
+  Widget _buildQuickAdd(ProductDto product, int qty, {double? salePrice}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (qty > 0) ...[
           _QtyBtn(
             icon: Icons.remove,
-            onTap: () => _setQty(product, qty - 1),
+            onTap: () => _setQty(product, qty - 1, unitPrice: salePrice),
             filled: true,
           ),
           Container(
@@ -614,7 +614,7 @@ class ProductListWidgetState extends State<ProductListWidget>
         ],
         _QtyBtn(
           icon: Icons.add,
-          onTap: () => _setQty(product, qty + 1),
+          onTap: () => _setQty(product, qty + 1, unitPrice: salePrice),
           filled: qty > 0,
           highlight: qty == 0,
         ),

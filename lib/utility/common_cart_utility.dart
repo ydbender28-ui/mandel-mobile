@@ -5,8 +5,8 @@ import 'package:mandel_mobile_app/utility/cart_state.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 
 class CommonCartUtility with CommonUtility {
-  Future<void> addToCart({required ProductDto productDto, required int qty}) async {
-    double unitPrice = getUnitPrice(productDto: productDto);
+  Future<void> addToCart({required ProductDto productDto, required int qty, double? unitPrice}) async {
+    unitPrice ??= getUnitPrice(productDto: productDto);
     double subTotal = unitPrice * qty;
 
     OrderItemEntity orderItem = OrderItemEntity(
