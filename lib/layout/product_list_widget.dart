@@ -12,7 +12,6 @@ import 'package:mandel_mobile_app/model/product_search_result_dto.dart';
 import 'package:mandel_mobile_app/service/category_service.dart';
 import 'package:mandel_mobile_app/service/last_order_service.dart';
 import 'package:mandel_mobile_app/service/product_service.dart';
-import 'package:mandel_mobile_app/layout/common_custom_widget/mandel_network_image.dart';
 import 'package:mandel_mobile_app/model/portal_deal_dto.dart';
 import 'package:mandel_mobile_app/model/portal_sale_dto.dart';
 import 'package:mandel_mobile_app/service/ads_service.dart';
@@ -681,7 +680,11 @@ class ProductListWidgetState extends State<ProductListWidget> {
           child: Stack(
             children: [
               hasImage
-                ? MandelNetworkImage(url: imageUrl, width: 70, height: 70)
+                ? Image.network(imageUrl,
+                    width: 70, height: 70, fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Image.asset(
+                      'assets/images/mandel_no_image.jpg',
+                      width: 70, height: 70, fit: BoxFit.cover))
                 : Image.asset('assets/images/mandel_no_image.jpg', width: 70, height: 70, fit: BoxFit.cover),
               // NEW badge (green) — top-left corner
               if (isNew)

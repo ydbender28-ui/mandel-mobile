@@ -12,7 +12,9 @@ import 'package:mandel_mobile_app/utility/barcode_scanner_utility.dart';
 import 'package:mandel_mobile_app/utility/cart_state.dart';
 
 class QuickOrderScreen extends StatefulWidget {
-  const QuickOrderScreen({super.key});
+  /// Set to true when embedded as a bottom-nav tab (hides back button, title = "Products").
+  final bool isTab;
+  const QuickOrderScreen({super.key, this.isTab = false});
 
   @override
   State<QuickOrderScreen> createState() => _QuickOrderScreenState();
@@ -96,21 +98,23 @@ class _QuickOrderScreenState extends State<QuickOrderScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 36, height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 16, color: Colors.white),
+                  if (!widget.isTab) ...[
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 36, height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 16, color: Colors.white),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text('Quick Order',
-                      style: TextStyle(
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: Text(widget.isTab ? 'Products' : 'Quick Order',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w800,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/cart_widget.dart';
 import 'package:mandel_mobile_app/layout/home_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/order_screen_widget.dart';
-import 'package:mandel_mobile_app/layout/product_screen_widget.dart';
+import 'package:mandel_mobile_app/layout/quick_order_screen.dart';
 import 'package:mandel_mobile_app/layout/profile_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/return_cart_widget.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
@@ -36,7 +36,7 @@ class _MainScreenWidgetState extends State<MainScreenWidget>
             physics: NeverScrollableScrollPhysics(),
             children: [
               HomeScreenWidget(),
-              ProductScreenWidget(),
+              QuickOrderScreen(isTab: true),
               OrderScreenWidget(isFromHomePage: true),
               CartWidget(isFromHomePage: true),
               ReturnCartWidget(),
