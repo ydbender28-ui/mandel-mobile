@@ -16,7 +16,7 @@ class LastOrderService {
         final list = (response.data['lastOrders'] as List?) ?? [];
         return {
           for (final e in list)
-            (e['productId'] as int): LastOrderInfo(
+            (e['productId'] as num).toInt(): LastOrderInfo(
               qty: (e['qty'] as num?)?.toInt() ?? 0,
               date: e['date']?.toString() ?? '',
             )

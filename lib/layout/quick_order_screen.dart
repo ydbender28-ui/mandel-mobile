@@ -236,7 +236,7 @@ class _QuickOrderScreenState extends State<QuickOrderScreen>
   }
 
   Widget _buildCartPanel(BuildContext context) {
-    final items = CartState.items;
+    final items = CartState.items.reversed.toList();
     if (items.isEmpty) return _buildEmptyCart();
 
     return Column(
