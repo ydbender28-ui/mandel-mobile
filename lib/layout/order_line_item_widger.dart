@@ -204,16 +204,16 @@ class _OrderLineItemWidgetState extends State<OrderLineItemWidget>
                             width: 10,
                             height: 10,
                             decoration: BoxDecoration(
-                              color: buildItemColor(orderDto.orderState!),
+                              color: buildItemColor(orderDto.orderState ?? 'PENDING'),
                               borderRadius:
                                   const BorderRadius.all(Radius.circular(100)),
                             )),
                         Text(
-                          '${orderDto.orderState}',
+                          '${orderDto.orderState ?? 'PENDING'}',
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: buildItemColor(orderDto.orderState!)),
+                              color: buildItemColor(orderDto.orderState ?? 'PENDING')),
                         )
                       ],
                     ),
@@ -240,7 +240,7 @@ class _OrderLineItemWidgetState extends State<OrderLineItemWidget>
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w500),
                       ),
-                      Text('${orderDto.orderItems!.length}',
+                      Text('${(orderDto.orderItems?.length ?? 0)}',
                           style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.w500))
                     ],
