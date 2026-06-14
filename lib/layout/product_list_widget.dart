@@ -74,6 +74,9 @@ class ProductListWidgetState extends State<ProductListWidget>
   // Per-product qty currently in cart (for quick-add controls)
   final Map<int, int> _cartQtys = {};
 
+  // Version counter — discard responses from superseded search calls
+  int _loadVersion = 0;
+
   // Store the category future so it's only created once (not on every rebuild)
   late Future<List<CategoryDto>> _categoryFuture;
 
@@ -109,21 +112,21 @@ class ProductListWidgetState extends State<ProductListWidget>
   }
 
   Future<void> _loadProductList() async {
-    if (_initProductLoad) {
-      productList.clear();
-    }
+    final shouldClear = _initProductLoad;
+    final myVersion = ++_loadVersion;
     try {
       ProductSearchResultDto output = await _productService.searchProduct(
           filters, filters['page'], filters['pageSize']);
-      if (!mounted) return;
+      if (!mounted || myVersion != _loadVersion) return;
       setState(() {
+        if (shouldClear) productList.clear();
         productList.addAll(output.results ?? []);
         _hasMore = (output.meta?.totalCount ?? 0) > productList.length;
         _initProductFetching = false;
       });
     } catch (e) {
       debugPrint('Product load error: $e');
-      if (!mounted) return;
+      if (!mounted || myVersion != _loadVersion) return;
       setState(() { _initProductFetching = false; });
     }
   }
@@ -511,6 +514,17 @@ class ProductListWidgetState extends State<ProductListWidget>
               highlightColor: Colors.white.withOpacity(0.04),
               onTap: () {
                 _storeSearchHistory();
+                final sEntry = _saleEntryFor(productDto);
+                final dEntry = sEntry == null ? _dealFor(productDto) : null;
+                double? discountedPrice;
+                if (sEntry != null) {
+                  discountedPrice = sEntry.salePrice;
+                } else if (dEntry != null && dEntry.type != 'BULK' && dEntry.discountAmount > 0) {
+                  final base = productDto.getNonFormatPrice();
+                  discountedPrice = dEntry.discountType == 'PERCENT'
+                      ? base * (1 - dEntry.discountAmount / 100)
+                      : (base - dEntry.discountAmount).clamp(0.0, double.infinity);
+                }
                 Navigator.push(context, MaterialPageRoute(
                   builder: (context) => OrderAndReturnScreenWidget(
                     productDto: productDto,
@@ -518,6 +532,7 @@ class ProductListWidgetState extends State<ProductListWidget>
                     fromOrder: false,
                     showAddToCart: widget.productDetailsOptions.showAddToCart,
                     showReturn: widget.productDetailsOptions.showReturn,
+                    discountedPrice: discountedPrice,
                     onClose: () { _streamControllers.sink.add('done'); },
                   ),
                 ));
@@ -793,19 +808,33 @@ class ProductListWidgetState extends State<ProductListWidget>
   Widget _buildPricing(ProductDto productDto) {
     final saleEntry = _saleEntryFor(productDto);
     final hasSale   = saleEntry != null;
-    final hasDeal   = !hasSale && productDto.isDealExist();
-    final showStrike = hasSale || hasDeal;
-    final originalPrice = productDto.getNonDiscountedUnitPrice();
-    final regularPrice  = productDto.getUnitPrice();
-    final displayPrice  = hasSale
-        ? saleEntry!.salePrice.toStringAsFixed(2)
-        : regularPrice;
+    final dealEntry = !hasSale ? _dealFor(productDto) : null;
+    final hasDealDiscount = dealEntry != null && dealEntry.type != 'BULK' && dealEntry.discountAmount > 0;
+    final showStrike = hasSale || hasDealDiscount;
+    final regularPrice = productDto.getUnitPrice();
+    final regularPriceDouble = productDto.getNonFormatPrice();
+
+    final String displayPrice;
+    if (hasSale) {
+      displayPrice = saleEntry!.salePrice.toStringAsFixed(2);
+    } else if (hasDealDiscount) {
+      final disc = dealEntry!.discountType == 'PERCENT'
+          ? regularPriceDouble * (1 - dealEntry.discountAmount / 100)
+          : (regularPriceDouble - dealEntry.discountAmount).clamp(0.0, double.infinity);
+      displayPrice = disc.toStringAsFixed(2);
+    } else {
+      displayPrice = regularPrice;
+    }
+
+    final priceColor = hasSale
+        ? const Color(0xFFFC8181)
+        : hasDealDiscount ? const Color(0xFFfb923c) : Colors.white;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         if (showStrike)
-          Text(hasSale ? regularPrice : originalPrice,
+          Text(regularPrice,
             style: TextStyle(
               fontSize: 12, fontWeight: FontWeight.w500,
               color: Colors.white.withOpacity(0.35),
@@ -814,8 +843,8 @@ class ProductListWidgetState extends State<ProductListWidget>
         Text('\$$displayPrice',
           style: TextStyle(
             fontSize: 20, fontWeight: FontWeight.w800,
-            color: hasSale ? const Color(0xFFFC8181) : Colors.white,
-            shadows: hasSale ? [Shadow(color: const Color(0xFFFC8181).withOpacity(0.5), blurRadius: 10)] : null)),
+            color: priceColor,
+            shadows: (hasSale || hasDealDiscount) ? [Shadow(color: priceColor.withOpacity(0.5), blurRadius: 10)] : null)),
         if (productDto.expiryDate != null && productDto.expiryDate!.isNotEmpty)
           Container(
             margin: const EdgeInsets.only(top: 4),

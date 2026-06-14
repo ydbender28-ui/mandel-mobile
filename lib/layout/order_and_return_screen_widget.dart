@@ -32,6 +32,7 @@ class OrderAndReturnScreenWidget extends StatefulWidget {
   final Function onClose;
   final bool showReturn;
   final bool showAddToCart;
+  final double? discountedPrice;
 
   const OrderAndReturnScreenWidget(
       {super.key,
@@ -41,7 +42,8 @@ class OrderAndReturnScreenWidget extends StatefulWidget {
       this.showReturn = true,
       required this.index,
       required this.fromOrder,
-      required this.onClose});
+      required this.onClose,
+      this.discountedPrice});
 
   @override
   State<OrderAndReturnScreenWidget> createState() =>
@@ -215,12 +217,31 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
     final url = (productDto.productImages?.isNotEmpty == true && productDto.productImages![0].url != null)
         ? productDto.productImages![0].url!
         : '';
+    final onDiscount = widget.discountedPrice != null;
     return Container(
       margin: const EdgeInsets.only(left: 10, right: 20, bottom: 10),
       child: Center(
-        child: url.startsWith('http')
-          ? MandelNetworkImage(url: url, width: 245, height: 245)
-          : Image.asset('assets/images/mandel_no_image.jpg', fit: BoxFit.cover, height: 245, width: 245),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            url.startsWith('http')
+              ? MandelNetworkImage(url: url, width: 245, height: 245)
+              : Image.asset('assets/images/mandel_no_image.jpg', fit: BoxFit.cover, height: 245, width: 245),
+            if (onDiscount)
+              Positioned(
+                top: 8, right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFdc2626),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text('SALE',
+                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.0)),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -319,11 +340,11 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                           fontWeight: FontWeight.w600,
                           color: CommonCustomColor.menuItemColor)),
                   Visibility(
-                    visible: getProductInfo().isDealExist(),
+                    visible: widget.discountedPrice != null || getProductInfo().isDealExist(),
                     child: Container(
                       margin: const EdgeInsets.only(right: 10),
                       child: Text(
-                          getProductNonDiscountedUnitPrice().toStringAsFixed(2),
+                          getProductInfo().getUnitPrice(),
                           style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -338,8 +359,13 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                         ProductInformationChange change =
                             snapshot.data as ProductInformationChange;
                         bool picePrice = change.returnType == returnTypes[1];
-                        String unitPrice =
-                            getProductUnitPrice(picePrice).toStringAsFixed(2);
+                        final String unitPrice;
+                        if (widget.discountedPrice != null && !picePrice) {
+                          unitPrice = widget.discountedPrice!.toStringAsFixed(2);
+                        } else {
+                          unitPrice = getProductUnitPrice(picePrice).toStringAsFixed(2);
+                        }
+                        final bool isSalePrice = widget.discountedPrice != null && !picePrice;
                         return AnimatedSwitcher(
                           duration: const Duration(microseconds: 200),
                           transitionBuilder:
@@ -349,10 +375,12 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                           },
                           child: Text(
                             "\$$unitPrice per ${picePrice ? 'Piece' : 'Box'}",
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: CommonCustomColor.defaultTextColor),
+                                color: isSalePrice
+                                    ? const Color(0xFFdc2626)
+                                    : CommonCustomColor.defaultTextColor),
                           ),
                         );
                       })

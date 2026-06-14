@@ -6,8 +6,8 @@ class PortalSaleItemDto {
   const PortalSaleItemDto({required this.id, required this.productId, required this.salePrice});
 
   factory PortalSaleItemDto.fromJson(Map<String, dynamic> j) => PortalSaleItemDto(
-    id:        j['id'] as int,
-    productId: j['productId'] as int,
+    id:        (j['id'] as num?)?.toInt() ?? 0,
+    productId: (j['productId'] as num?)?.toInt() ?? 0,
     salePrice: ((j['salePrice'] ?? 0) as num).toDouble(),
   );
 }
