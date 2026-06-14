@@ -42,7 +42,7 @@ class ProductListWidgetState extends State<ProductListWidget> {
   final _productService = ProductService();
 
   ///
-  Map<String, dynamic> filters = <String, dynamic>{"page": 0, "pageSize": 20};
+  Map<String, dynamic> filters = <String, dynamic>{"page": 0, "pageSize": 50};
 
   ///
   final _scrollController = ScrollController();
