@@ -15,6 +15,7 @@ import 'package:mandel_mobile_app/model/product_search_result_dto.dart';
 import 'package:mandel_mobile_app/model/scanner_arguments.dart';
 import 'package:mandel_mobile_app/service/product_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
+import 'package:mandel_mobile_app/utility/mpr_barcode_utility.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shimmer/shimmer.dart';
@@ -178,12 +179,16 @@ class _CameraScannerState extends State<CameraScanner> {
       return;
     }
 
-    filters!['barcode'] = barcode;
-
     barcodeResultsController.add(BarcodeScanResult(
         code: barcode, status: BarcodeScanStatus.awaitingProductInfo));
-    ProductSearchResultDto output =
-        await _productService.searchProduct(filters, 0, 10);
+    final mprId = parseMprProductId(barcode);
+    ProductSearchResultDto output;
+    if (mprId != null) {
+      output = await _productService.getProductById(mprId);
+    } else {
+      filters!['barcode'] = barcode;
+      output = await _productService.searchProduct(filters, 0, 10);
+    }
     if (output.results!.isNotEmpty) {
       barcodeResultsController.add(BarcodeScanResult(
           code: barcode,

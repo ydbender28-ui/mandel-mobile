@@ -31,4 +31,17 @@ class ProductService with CommonUtility {
   getProductList(Map<String, dynamic>? filters) {
     return DioClient().dio.get(buildUrl('/product'), queryParameters: filters);
   }
+
+  Future<ProductSearchResultDto> getProductById(int productId) async {
+    final response = await DioClient().dio.get(buildUrl('/product/$productId'));
+    if (response.statusCode == 200 && response.data != null) {
+      final data = response.data;
+      if (data is Map && data.containsKey('results')) {
+        return ProductSearchResultDto.fromJson(data as Map<String, dynamic>);
+      }
+      final product = ProductDto.fromJson(data as Map<String, dynamic>);
+      return ProductSearchResultDto(results: [product]);
+    }
+    return ProductSearchResultDto(results: []);
+  }
 }
