@@ -45,7 +45,10 @@ void printLabelImpl({required String productName, required String barcodeValue})
 
   final winBase = html.window.open('', '_blank', 'width=400,height=300');
   if (winBase is html.Window) {
-    winBase.document.write(content);
-    winBase.document.close();
+    final doc = winBase.document;
+    if (doc is html.HtmlDocument) {
+      doc.write(content);
+      doc.close();
+    }
   }
 }
