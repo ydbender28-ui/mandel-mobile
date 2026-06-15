@@ -476,6 +476,61 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
     return product.productCode ?? '';
   }
 
+  void _showPrintLabelDialog(ProductDto productDto) {
+    final priceController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 24, right: 24, top: 24,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Print Shelf Label',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            Text(productDto.getProductName(),
+                style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 20),
+            TextField(
+              controller: priceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Price (optional)',
+                prefixText: '\$ ',
+                hintText: '0.00',
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                final price = priceController.text.trim();
+                printLabel(
+                  productName: productDto.getProductName(),
+                  barcodeValue: _getBarcodeValue(productDto),
+                  price: price.isEmpty ? null : price,
+                );
+              },
+              icon: const Icon(Icons.print_outlined),
+              label: const Text('Print', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildButtonList(ProductDto productDto) {
     return Container(
       margin: const EdgeInsets.only(top: 0, left: 15, right: 15, bottom: 15),
@@ -483,12 +538,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           OutlinedButton.icon(
-            onPressed: () {
-              printLabel(
-                productName: productDto.getProductName(),
-                barcodeValue: _getBarcodeValue(productDto),
-              );
-            },
+            onPressed: () => _showPrintLabelDialog(productDto),
             icon: const Icon(Icons.print_outlined),
             label: const Text('Print Label',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
