@@ -30,7 +30,7 @@ void printLabelImpl({required String productName, required String barcodeValue, 
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:#f5f5f5; display:flex; flex-wrap:wrap; gap:10px; padding:16px; }
   .label { width:252px; height:144px; border:1px solid #222; border-radius:3px; display:flex; background:#fff; font-family:Arial,sans-serif; overflow:hidden; page-break-inside:avoid; }
-  .stripe { width:26px; border-right:1px solid #222; display:flex; align-items:center; justify-content:center; writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg); font-size:11px; font-weight:900; letter-spacing:2px; color:#111; white-space:nowrap; }
+  .stripe { width:28px; background:#111; border-radius:3px 0 0 3px; display:flex; align-items:center; justify-content:center; writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg); font-size:9.5px; font-weight:900; letter-spacing:3.5px; color:#fff; white-space:nowrap; text-transform:uppercase; }
   .body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px 8px 4px; gap:3px; }
   .pname { font-size:$nameFontSize; font-weight:700; color:#111; text-align:center; line-height:1.2; }
   .price { font-size:20px; font-weight:900; color:#111; letter-spacing:-0.5px; line-height:1; }
