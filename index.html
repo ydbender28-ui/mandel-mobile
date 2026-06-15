@@ -25,7 +25,7 @@
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "1135130113";
+    const serviceWorkerVersion = "2377298298";
   </script>
   <script src="flutter.js" defer></script>
 
@@ -47,25 +47,50 @@
         callback(val);
       }
 
+      // ZXing fallback — use a data URL (not a blob URL) so iOS Safari doesn't block it
+      function tryZXing(dataUrl) {
+        try {
+          if (typeof ZXing === 'undefined' || !ZXing.BrowserMultiFormatReader) {
+            finish(null); return;
+          }
+          new ZXing.BrowserMultiFormatReader()
+            .decodeFromImageUrl(dataUrl)
+            .then(function(r) { finish(r.getText()); })
+            .catch(function() { finish(null); });
+        } catch(e) { finish(null); }
+      }
+
       input.addEventListener('change', function() {
         var file = input.files && input.files[0];
         if (!file) { finish(null); return; }
-        var url = URL.createObjectURL(file);
-        try {
-          if (typeof ZXing === 'undefined' || !ZXing.BrowserMultiFormatReader) {
-            URL.revokeObjectURL(url); finish(null); return;
+
+        // Always read as data URL first — blob URLs break on iOS Safari
+        var fr = new FileReader();
+        fr.onload = function(evt) {
+          var dataUrl = evt.target.result;
+
+          // Use native BarcodeDetector if available (Chrome / Android WebView)
+          if (window.BarcodeDetector) {
+            var img = new Image();
+            img.onload = function() {
+              new BarcodeDetector().detect(img)
+                .then(function(codes) {
+                  if (codes.length > 0) finish(codes[0].rawValue);
+                  else tryZXing(dataUrl);
+                })
+                .catch(function() { tryZXing(dataUrl); });
+            };
+            img.onerror = function() { tryZXing(dataUrl); };
+            img.src = dataUrl;
+          } else {
+            tryZXing(dataUrl);
           }
-          var reader = new ZXing.BrowserMultiFormatReader();
-          reader.decodeFromImageUrl(url)
-            .then(function(result) { URL.revokeObjectURL(url); finish(result.getText()); })
-            .catch(function() { URL.revokeObjectURL(url); finish(null); });
-        } catch(e) {
-          URL.revokeObjectURL(url); finish(null);
-        }
+        };
+        fr.onerror = function() { finish(null); };
+        fr.readAsDataURL(file);
       });
 
       input.addEventListener('cancel', function() { finish(null); });
-
       document.body.appendChild(input);
       input.click();
     };
