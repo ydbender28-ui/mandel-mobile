@@ -13,6 +13,7 @@ import 'package:mandel_mobile_app/model/scanner_arguments.dart';
 import 'package:mandel_mobile_app/service/product_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/mpr_barcode_utility.dart';
+import 'package:mandel_mobile_app/utility/web_scanner.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shimmer/shimmer.dart';
@@ -26,7 +27,7 @@ class CameraScanner extends StatefulWidget {
 
 class _CameraScannerState extends State<CameraScanner> {
   final _productService = ProductService();
-  late final MobileScannerController _scannerController;
+  MobileScannerController? _scannerController;
   StreamController<BarcodeScanResult> barcodeResultsController =
       BehaviorSubject();
   late StreamSubscription<BarcodeScanResult> _barcodeResultSubscription;
@@ -37,15 +38,17 @@ class _CameraScannerState extends State<CameraScanner> {
           ProductDetailsOptions(showAddToCart: true, showReturn: false));
 
   bool _isProcessing = false;
-  // On web (Safari) the camera requires an explicit user tap to start.
-  bool _cameraStarted = !kIsWeb;
+  bool _webScanning = false;
 
   @override
   void initState() {
     super.initState();
-    _scannerController = MobileScannerController(
-      detectionSpeed: DetectionSpeed.noDuplicates,
-    );
+    // MobileScanner is native-only — don't initialize on web
+    if (!kIsWeb) {
+      _scannerController = MobileScannerController(
+        detectionSpeed: DetectionSpeed.noDuplicates,
+      );
+    }
     _barcodeResultSubscription =
         barcodeResultsController.stream.listen((BarcodeScanResult result) {
       if (BarcodeScanStatus.productFound == result.status) {
@@ -94,7 +97,7 @@ class _CameraScannerState extends State<CameraScanner> {
   @override
   void dispose() {
     _barcodeResultSubscription.cancel();
-    _scannerController.dispose();
+    _scannerController?.dispose();
     super.dispose();
   }
 
@@ -115,51 +118,124 @@ class _CameraScannerState extends State<CameraScanner> {
         ),
         title: const Text('Scan Products', style: TextStyle(fontSize: 24)),
         actions: [
-          PopupMenuButton(
-              onSelected: _handleMenuClick,
-              itemBuilder: (context) => [
-                    const PopupMenuItem(
-                        value: 'BLE_SCANNER',
-                        child: Text("Bluetooth Scanner")),
-                    const PopupMenuItem(
-                        value: 'SETTINGS', child: Text('Settings')),
-                  ])
+          if (!kIsWeb)
+            PopupMenuButton(
+                onSelected: _handleMenuClick,
+                itemBuilder: (context) => [
+                      const PopupMenuItem(
+                          value: 'BLE_SCANNER',
+                          child: Text("Bluetooth Scanner")),
+                      const PopupMenuItem(
+                          value: 'SETTINGS', child: Text('Settings')),
+                    ])
         ],
       ),
-      body: Column(
+      body: kIsWeb ? _buildWebBody() : _buildNativeBody(),
+    );
+  }
+
+  // ── Web body: photo-based scan (works on Safari/iPhone without getUserMedia) ──
+
+  Widget _buildWebBody() {
+    return Column(
+      children: [
+        Expanded(
+          flex: 3,
+          child: _buildWebScanButton(),
+        ),
+        Expanded(
+          flex: 2,
+          child: _buildResultPanel(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebScanButton() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(
-            flex: 3,
-            child: _cameraStarted
-                ? Stack(
-                    children: [
-                      MobileScanner(
-                        controller: _scannerController,
-                        onDetect: (BarcodeCapture capture) {
-                          if (_isProcessing) return;
-                          for (final Barcode barcode in capture.barcodes) {
-                            final String? code = barcode.rawValue;
-                            if (code != null && code.isNotEmpty) {
-                              setState(() => _isProcessing = true);
-                              _handleScanResult(code);
-                              break;
-                            }
-                          }
-                        },
-                        errorBuilder: (context, error, child) =>
-                            _buildCameraError(error.toString()),
-                      ),
-                      _buildScanOverlay(),
-                    ],
-                  )
-                : _buildStartCameraButton(),
+          const Icon(Icons.qr_code, size: 80, color: Color(0xFF818CF8)),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _webScanning ? null : _handleWebScan,
+            icon: _webScanning
+                ? const SizedBox(
+                    width: 18, height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.camera_alt),
+            label: Text(_webScanning ? 'Processing…' : 'Scan Barcode'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
+              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
           ),
-          Expanded(
-            flex: 2,
-            child: _buildResultPanel(),
+          const SizedBox(height: 14),
+          const Text(
+            'Opens camera — point at a barcode and take a photo',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Colors.grey),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _handleWebScan() async {
+    setState(() => _webScanning = true);
+    barcodeResultsController.add(BarcodeScanResult(
+        code: '', status: BarcodeScanStatus.awaitingProductInfo));
+    try {
+      final code = await scanBarcodeFromPhoto();
+      if (code != null && code.isNotEmpty) {
+        await _handleScanResult(code);
+      } else {
+        barcodeResultsController.add(BarcodeScanResult(
+            code: '', status: BarcodeScanStatus.productNotFound));
+      }
+    } catch (_) {
+      barcodeResultsController.add(BarcodeScanResult(
+          code: '', status: BarcodeScanStatus.productNotFound));
+    } finally {
+      setState(() => _webScanning = false);
+    }
+  }
+
+  // ── Native body: live MobileScanner camera ──
+
+  Widget _buildNativeBody() {
+    return Column(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Stack(
+            children: [
+              MobileScanner(
+                controller: _scannerController!,
+                onDetect: (BarcodeCapture capture) {
+                  if (_isProcessing) return;
+                  for (final Barcode barcode in capture.barcodes) {
+                    final String? code = barcode.rawValue;
+                    if (code != null && code.isNotEmpty) {
+                      setState(() => _isProcessing = true);
+                      _handleScanResult(code);
+                      break;
+                    }
+                  }
+                },
+                errorBuilder: (context, error, child) =>
+                    _buildNativeCameraError(),
+              ),
+              _buildScanOverlay(),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: _buildResultPanel(),
+        ),
+      ],
     );
   }
 
@@ -236,59 +312,27 @@ class _CameraScannerState extends State<CameraScanner> {
     }
   }
 
-  Widget _buildStartCameraButton() {
-    return Center(
+  Widget _buildNativeCameraError() {
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.camera_alt_outlined, size: 56, color: Colors.grey),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () => setState(() => _cameraStarted = true),
-            icon: const Icon(Icons.qr_code_scanner),
-            label: const Text('Start Camera'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text('Allow camera access when prompted',
-              style: TextStyle(fontSize: 13, color: Colors.grey)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCameraError(String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.camera_enhance, size: 48, color: Colors.orange),
-          const SizedBox(height: 12),
-          const Text('Camera unavailable',
+          Icon(Icons.camera_enhance, size: 48, color: Colors.orange),
+          SizedBox(height: 12),
+          Text('Camera unavailable',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          Text('Make sure you allowed camera access in Safari.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: Colors.grey)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _cameraStarted = false;
-              });
-              Future.microtask(() => setState(() => _cameraStarted = true));
-            },
-            child: const Text('Retry'),
-          ),
         ],
       ),
     );
   }
 
   Widget _buildAwaitingMessage() {
+    if (kIsWeb) {
+      return const Center(
+        child: Text('Tap "Scan Barcode" above to begin',
+            style: TextStyle(fontSize: 15, color: Colors.grey)),
+      );
+    }
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -311,8 +355,15 @@ class _CameraScannerState extends State<CameraScanner> {
           const SizedBox(height: 8),
           const Text('Product not found',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-          Text(code,
-              style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          if (code.isNotEmpty)
+            Text(code, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 16),
+          if (kIsWeb)
+            ElevatedButton.icon(
+              onPressed: _webScanning ? null : _handleWebScan,
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Try Again'),
+            ),
         ],
       ),
     );
