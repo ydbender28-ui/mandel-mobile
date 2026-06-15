@@ -1,5 +1,5 @@
 // ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'dart:js' as js;
 
 void printLabelImpl({required String productName, required String barcodeValue}) {
   final escapedName = productName
@@ -43,12 +43,10 @@ void printLabelImpl({required String productName, required String barcodeValue})
   });
 <\/script></body></html>''';
 
-  final winBase = html.window.open('', '_blank', 'width=400,height=300');
-  if (winBase is html.Window) {
-    final doc = winBase.document;
-    if (doc is html.HtmlDocument) {
-      doc.write(content);
-      doc.close();
-    }
+  final win = js.context.callMethod('open', ['', '_blank', 'width=400,height=300']);
+  if (win != null) {
+    final doc = win['document'] as js.JsObject;
+    doc.callMethod('write', [content]);
+    doc.callMethod('close', []);
   }
 }
