@@ -67,11 +67,20 @@ class _OrderLineItemWidgetState extends State<OrderLineItemWidget>
       final statusFilter = <String, String>{'orderState': widget.status};
       filters.addEntries(statusFilter.entries);
     }
-    Response response = await OrderService().getOrderList(filters);
-    if (response.statusCode == 200) {
-      final result = OrderSearchResultDto.fromJson(response.data);
-      _orderList.addAll(result.results!);
-      _hasMore = result.meta!.totalCount! > _orderList.length;
+    try {
+      Response response = await OrderService().getOrderList(filters);
+      if (response.statusCode == 200) {
+        final result = OrderSearchResultDto.fromJson(response.data);
+        _orderList.addAll(result.results!);
+        _hasMore = result.meta!.totalCount! > _orderList.length;
+      } else {
+        throw Exception('Server returned ${response.statusCode}: ${response.data}');
+      }
+    } on DioException catch (e) {
+      final msg = e.response != null
+          ? 'HTTP ${e.response!.statusCode}: ${e.response!.data}'
+          : 'Network error — ${e.message ?? e.type.name}';
+      throw Exception(msg);
     }
     return _orderList;
   }
@@ -100,6 +109,37 @@ class _OrderLineItemWidgetState extends State<OrderLineItemWidget>
     return FutureBuilder(
       future: _getOrderList(),
       builder: (BuildContext context, AsyncSnapshot<List<OrderDto>> result) {
+        if (result.hasError) {
+          return Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const SizedBox(height: 12),
+                    Text(
+                      '${result.error}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 14, color: Colors.red),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => setState(() {
+                        _orderList.clear();
+                        _hasMore = true;
+                        filters['page'] = 0;
+                      }),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
         if (result.hasData) {
           if (result.data!.isEmpty) {
             return Column(
