@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
@@ -159,7 +160,10 @@ class _ProductScreenWidgetState extends State<ProductScreenWidget> {
               // Search by Barcode button
               GestureDetector(
                 onTap: () => Navigator.pushNamed(
-                    context, CommonConstants.productScannerScreenUrl),
+                    context,
+                    kIsWeb
+                        ? CommonConstants.cameraBrcodeScannerUrl
+                        : CommonConstants.productScannerScreenUrl),
                 child: Container(
                   height: 38,
                   decoration: BoxDecoration(

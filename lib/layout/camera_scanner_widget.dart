@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/multiple_product_option_list_widget.dart';
 import 'package:mandel_mobile_app/layout/order_and_return_screen_widget.dart';
@@ -25,9 +26,7 @@ class CameraScanner extends StatefulWidget {
 
 class _CameraScannerState extends State<CameraScanner> {
   final _productService = ProductService();
-  final _scannerController = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
-  );
+  late final MobileScannerController _scannerController;
   StreamController<BarcodeScanResult> barcodeResultsController =
       BehaviorSubject();
   late StreamSubscription<BarcodeScanResult> _barcodeResultSubscription;
@@ -38,10 +37,15 @@ class _CameraScannerState extends State<CameraScanner> {
           ProductDetailsOptions(showAddToCart: true, showReturn: false));
 
   bool _isProcessing = false;
+  // On web (Safari) the camera requires an explicit user tap to start.
+  bool _cameraStarted = !kIsWeb;
 
   @override
   void initState() {
     super.initState();
+    _scannerController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+    );
     _barcodeResultSubscription =
         barcodeResultsController.stream.listen((BarcodeScanResult result) {
       if (BarcodeScanStatus.productFound == result.status) {
@@ -126,25 +130,29 @@ class _CameraScannerState extends State<CameraScanner> {
         children: [
           Expanded(
             flex: 3,
-            child: Stack(
-              children: [
-                MobileScanner(
-                  controller: _scannerController,
-                  onDetect: (BarcodeCapture capture) {
-                    if (_isProcessing) return;
-                    for (final Barcode barcode in capture.barcodes) {
-                      final String? code = barcode.rawValue;
-                      if (code != null && code.isNotEmpty) {
-                        setState(() => _isProcessing = true);
-                        _handleScanResult(code);
-                        break;
-                      }
-                    }
-                  },
-                ),
-                _buildScanOverlay(),
-              ],
-            ),
+            child: _cameraStarted
+                ? Stack(
+                    children: [
+                      MobileScanner(
+                        controller: _scannerController,
+                        onDetect: (BarcodeCapture capture) {
+                          if (_isProcessing) return;
+                          for (final Barcode barcode in capture.barcodes) {
+                            final String? code = barcode.rawValue;
+                            if (code != null && code.isNotEmpty) {
+                              setState(() => _isProcessing = true);
+                              _handleScanResult(code);
+                              break;
+                            }
+                          }
+                        },
+                        errorBuilder: (context, error, child) =>
+                            _buildCameraError(error.toString()),
+                      ),
+                      _buildScanOverlay(),
+                    ],
+                  )
+                : _buildStartCameraButton(),
           ),
           Expanded(
             flex: 2,
@@ -226,6 +234,58 @@ class _CameraScannerState extends State<CameraScanner> {
           code: barcode, status: BarcodeScanStatus.productNotFound));
       setState(() => _isProcessing = false);
     }
+  }
+
+  Widget _buildStartCameraButton() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.camera_alt_outlined, size: 56, color: Colors.grey),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () => setState(() => _cameraStarted = true),
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('Start Camera'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text('Allow camera access when prompted',
+              style: TextStyle(fontSize: 13, color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCameraError(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.camera_enhance, size: 48, color: Colors.orange),
+          const SizedBox(height: 12),
+          const Text('Camera unavailable',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Text('Make sure you allowed camera access in Safari.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _cameraStarted = false;
+              });
+              Future.microtask(() => setState(() => _cameraStarted = true));
+            },
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAwaitingMessage() {
