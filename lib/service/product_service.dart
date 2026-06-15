@@ -1,4 +1,3 @@
-import 'package:mandel_mobile_app/model/product_dto.dart';
 import 'package:mandel_mobile_app/model/product_search_result_dto.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 import 'package:mandel_mobile_app/utility/dio_client.dart';
@@ -36,12 +35,15 @@ class ProductService with CommonUtility {
   Future<ProductSearchResultDto> getProductById(int productId) async {
     final response = await DioClient().dio.get(buildUrl('/product/$productId'));
     if (response.statusCode == 200 && response.data != null) {
-      final data = response.data;
-      if (data is Map && data.containsKey('results')) {
-        return ProductSearchResultDto.fromJson(data as Map<String, dynamic>);
+      final data = response.data as Map<String, dynamic>;
+      if (data.containsKey('results')) {
+        return ProductSearchResultDto.fromJson(data);
       }
-      final product = ProductDto.fromJson(data as Map<String, dynamic>);
-      return ProductSearchResultDto(results: [product]);
+      // Single product — wrap in list format so fromJson handles it
+      return ProductSearchResultDto.fromJson({
+        'results': [data],
+        'meta': {'totalCount': 1, 'page': 0, 'pageSize': 1},
+      });
     }
     return ProductSearchResultDto(results: []);
   }
