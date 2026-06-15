@@ -1,3 +1,4 @@
+import 'package:mandel_mobile_app/model/product_dto.dart';
 import 'package:mandel_mobile_app/model/product_search_result_dto.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 import 'package:mandel_mobile_app/utility/dio_client.dart';
