@@ -21,6 +21,7 @@ import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:mandel_mobile_app/utility/common_return_utility.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
+import 'package:mandel_mobile_app/utility/label_print.dart';
 import 'package:mandel_mobile_app/utility/message_utility.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
@@ -461,10 +462,44 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
     );
   }
 
+  String _getBarcodeValue(ProductDto product) {
+    if (product.barcodes != null && product.barcodes!.isNotEmpty) {
+      final mpr = product.barcodes!.firstWhere(
+        (b) => b.value != null && b.value!.startsWith('MPR:'),
+        orElse: () => product.barcodes!.first,
+      );
+      if (mpr.value != null && mpr.value!.isNotEmpty) return mpr.value!;
+    }
+    if (product.id != null) {
+      return 'MPR:${product.id.toString().padLeft(6, '0')}';
+    }
+    return product.productCode ?? '';
+  }
+
   Widget _buildButtonList(ProductDto productDto) {
     return Container(
       margin: const EdgeInsets.only(top: 0, left: 15, right: 15, bottom: 15),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OutlinedButton.icon(
+            onPressed: () {
+              printLabel(
+                productName: productDto.getProductName(),
+                barcodeValue: _getBarcodeValue(productDto),
+              );
+            },
+            icon: const Icon(Icons.print_outlined),
+            label: const Text('Print Label',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(46),
+              side: const BorderSide(color: Color(0xFFc9a84c)),
+              foregroundColor: const Color(0xFFc9a84c),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           if (widget.showReturn)
@@ -530,6 +565,8 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                 ),
               ),
             )
+        ],
+      ),
         ],
       ),
     );
