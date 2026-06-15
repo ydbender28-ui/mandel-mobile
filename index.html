@@ -25,9 +25,54 @@
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "2904106275";
+    const serviceWorkerVersion = "2672470754";
   </script>
   <script src="flutter.js" defer></script>
+
+  <!-- ZXing barcode decoder for photo-based scanning on web/Safari -->
+  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+  <script>
+    // Opens native iOS/Android camera via file picker, then decodes the barcode photo.
+    // Uses a callback because Dart's dart:js can't await JS Promises directly.
+    window.scanBarcodeFromPhoto = function(callback) {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      input.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+
+      input.addEventListener('change', function() {
+        var file = input.files && input.files[0];
+        if (!file) { callback(null); cleanup(); return; }
+
+        var url = URL.createObjectURL(file);
+        var reader = new ZXing.BrowserMultiFormatReader();
+        reader.decodeFromImageUrl(url)
+          .then(function(result) {
+            URL.revokeObjectURL(url);
+            callback(result.getText());
+          })
+          .catch(function() {
+            URL.revokeObjectURL(url);
+            callback(null);
+          })
+          .finally(cleanup);
+      });
+
+      // If user cancels without selecting, clean up after a short delay
+      input.addEventListener('cancel', function() {
+        callback(null);
+        cleanup();
+      });
+
+      function cleanup() {
+        if (input.parentNode) input.parentNode.removeChild(input);
+      }
+
+      document.body.appendChild(input);
+      input.click();
+    };
+  </script>
 </head>
 <body>
   <script>
