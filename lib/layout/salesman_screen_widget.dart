@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/utility/auth_support_utility.dart';
@@ -34,6 +36,7 @@ class _SalesmanScreenWidgetState extends State<SalesmanScreenWidget>
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchCtrl.removeListener(_onSearchChanged);
     _searchCtrl.dispose();
     super.dispose();
@@ -41,10 +44,10 @@ class _SalesmanScreenWidgetState extends State<SalesmanScreenWidget>
 
   void _onSearchChanged() {
     _debounce?.cancel();
-    _debounce = Future.delayed(const Duration(milliseconds: 350), () => _load(q: _searchCtrl.text.trim()));
+    _debounce = Timer(const Duration(milliseconds: 350), () => _load(q: _searchCtrl.text.trim()));
   }
 
-  Future? _debounce;
+  Timer? _debounce;
 
   Future<void> _load({String q = ''}) async {
     setState(() { _loading = true; _error = ''; });
