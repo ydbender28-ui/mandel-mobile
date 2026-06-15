@@ -37,7 +37,20 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget>
       );
       if (res.statusCode == 200 && res.data['token'] != null) {
         await saveToken(res.data['token']);
-        if (mounted) Navigator.of(context).pushReplacementNamed(CommonConstants.mainScreenUrl);
+        final role = res.data['role'] ?? 'customer';
+        if (role == 'salesman') {
+          final salesmanName = res.data['salesmanName'] ?? '';
+          await saveSalesmanName(salesmanName);
+          if (mounted) Navigator.of(context).pushReplacementNamed(CommonConstants.salesmanScreenUrl);
+        } else {
+          final linkedStores = res.data['linkedStores'];
+          if (linkedStores is List && linkedStores.isNotEmpty) {
+            await saveLinkedStores(linkedStores);
+          } else {
+            await clearLinkedStores();
+          }
+          if (mounted) Navigator.of(context).pushReplacementNamed(CommonConstants.mainScreenUrl);
+        }
       } else {
         setState(() { _error = res.data['error'] ?? 'Login failed'; });
       }

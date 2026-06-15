@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mandel_mobile_app/db/repository/order_master_repository.dart';
@@ -20,12 +21,23 @@ class ProfileScreenWidget extends StatefulWidget {
 class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     with AuthSupportUtility {
 
+  List<Map<String, dynamic>> _stores = [];
+  bool _storeSwitching = false;
+
   static const _h1     = Color(0xFF0C0F1E);
   static const _h2     = Color(0xFF1B2860);
   static const _indigo = Color(0xFF4F46E5);
   static const _bg     = Color(0xFFEEF0FA);
   static const _textHi = Color(0xFF0D1135);
   static const _textLo = Color(0xFF9AA3C2);
+
+  @override
+  void initState() {
+    super.initState();
+    getLinkedStores().then((stores) {
+      if (mounted && stores.isNotEmpty) setState(() => _stores = stores);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +50,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
           children: [
             _header(),
             const SizedBox(height: 24),
+            if (_stores.length > 1) ...[
+              _storeSwitcherSection(),
+              const SizedBox(height: 16),
+            ],
             _menuSection(),
             const SizedBox(height: 80),
           ],
@@ -138,6 +154,87 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     );
   }
 
+  Widget _storeSwitcherSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: const Color(0xFF0D1135).withOpacity(0.05), blurRadius: 16, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: Row(children: [
+              const Icon(Icons.store_rounded, size: 18, color: Color(0xFF4F46E5)),
+              const SizedBox(width: 8),
+              const Text('My Stores', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF0D1135))),
+              if (_storeSwitching) ...[
+                const SizedBox(width: 10),
+                const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+              ],
+            ]),
+          ),
+          const Divider(height: 1, color: Color(0xFFF0F1F8)),
+          ..._stores.asMap().entries.map((entry) {
+            final i = entry.key;
+            final s = entry.value;
+            final isLast = i == _stores.length - 1;
+            return InkWell(
+              onTap: _storeSwitching ? null : () => _switchToStore(s),
+              borderRadius: BorderRadius.vertical(
+                bottom: isLast ? const Radius.circular(16) : Radius.zero,
+              ),
+              child: Container(
+                height: 54,
+                decoration: isLast ? null : const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Color(0xFFF0F1F8), width: 1))),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(children: [
+                  Container(
+                    width: 32, height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4F46E5).withOpacity(0.09),
+                      borderRadius: BorderRadius.circular(8)),
+                    child: const Icon(Icons.store_rounded, size: 16, color: Color(0xFF4F46E5)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(s['name'] ?? '', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0D1135)), overflow: TextOverflow.ellipsis),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFF9AA3C2)),
+                ]),
+              ),
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _switchToStore(Map<String, dynamic> store) async {
+    setState(() => _storeSwitching = true);
+    try {
+      final token = await getTokenFromSession();
+      final res = await Dio().post(
+        '${CommonConstants.mandelBaseUrl}/switch-store',
+        data: {'customerId': store['customerId']},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      await saveToken(res.data['token']);
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(CommonConstants.mainScreenUrl);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _storeSwitching = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not switch store'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   Widget _menuSection() {
     final items = [
       _MenuItem(index: 0, icon: Icons.receipt_long_rounded,     label: 'My Orders',  color: _indigo),
@@ -235,6 +332,8 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     }
     if (key == 4) {
       signOutUser();
+      clearLinkedStores();
+      clearSalesmanName();
       UserMasterRepository().clearUserMaster();
       OrderRepository().clearOrderItems();
       OrderMasterRepository().clearOrderMaster();

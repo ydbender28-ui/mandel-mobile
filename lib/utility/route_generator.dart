@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mandel_mobile_app/layout/bluetooth_devices_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/quick_order_screen.dart';
+import 'package:mandel_mobile_app/layout/salesman_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/brand_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/camera_scanner_widget.dart';
 import 'package:mandel_mobile_app/layout/category_screen_widget.dart';
@@ -86,6 +87,9 @@ class RouteGenerator {
       case CommonConstants.quickOrderScreen:
         return MaterialPageRoute(
             settings: route, builder: (_) => const QuickOrderScreen());
+      case CommonConstants.salesmanScreenUrl:
+        return MaterialPageRoute(
+            settings: route, builder: (_) => const SalesmanScreenWidget());
       default:
         return MaterialPageRoute(
             settings: route, builder: (_) => const SplashScreenWidget());
