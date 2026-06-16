@@ -29,9 +29,36 @@
   </script>
   <script src="flutter.js" defer></script>
 
-  <!-- ZXing barcode decoder for photo-based scanning on web/Safari -->
-  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+  <!-- ZXing barcode decoder (jsDelivr CDN is more reliable than unpkg) -->
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
   <script>
+    // Resize a data-URL image to maxW wide on a canvas and return new data URL.
+    // Large iPhone photos (4032×3024) cause ZXing to OOM/hang — shrink first.
+    function _resizeDataUrl(dataUrl, maxW, done) {
+      var img = new Image();
+      img.onload = function() {
+        var scale = img.naturalWidth > maxW ? maxW / img.naturalWidth : 1;
+        var w = Math.round(img.naturalWidth * scale);
+        var h = Math.round(img.naturalHeight * scale);
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        done(c.toDataURL('image/jpeg', 0.92));
+      };
+      img.onerror = function() { done(dataUrl); }; // fall back to original
+      img.src = dataUrl;
+    }
+
+    function _zxingDecode(dataUrl, cb) {
+      try {
+        if (typeof ZXing === 'undefined' || !ZXing.BrowserMultiFormatReader) { cb(null); return; }
+        new ZXing.BrowserMultiFormatReader()
+          .decodeFromImageUrl(dataUrl)
+          .then(function(r) { cb(r.getText()); })
+          .catch(function() { cb(null); });
+      } catch(e) { cb(null); }
+    }
+
     window.scanBarcodeFromPhoto = function(callback) {
       var input = document.createElement('input');
       input.type = 'file';
@@ -47,44 +74,35 @@
         callback(val);
       }
 
-      // ZXing fallback — use a data URL (not a blob URL) so iOS Safari doesn't block it
-      function tryZXing(dataUrl) {
-        try {
-          if (typeof ZXing === 'undefined' || !ZXing.BrowserMultiFormatReader) {
-            finish(null); return;
-          }
-          new ZXing.BrowserMultiFormatReader()
-            .decodeFromImageUrl(dataUrl)
-            .then(function(r) { finish(r.getText()); })
-            .catch(function() { finish(null); });
-        } catch(e) { finish(null); }
-      }
-
       input.addEventListener('change', function() {
         var file = input.files && input.files[0];
         if (!file) { finish(null); return; }
 
-        // Always read as data URL first — blob URLs break on iOS Safari
         var fr = new FileReader();
         fr.onload = function(evt) {
-          var dataUrl = evt.target.result;
+          var originalUrl = evt.target.result;
 
-          // Use native BarcodeDetector if available (Chrome / Android WebView)
-          if (window.BarcodeDetector) {
-            var img = new Image();
-            img.onload = function() {
-              new BarcodeDetector().detect(img)
-                .then(function(codes) {
-                  if (codes.length > 0) finish(codes[0].rawValue);
-                  else tryZXing(dataUrl);
-                })
-                .catch(function() { tryZXing(dataUrl); });
-            };
-            img.onerror = function() { tryZXing(dataUrl); };
-            img.src = dataUrl;
-          } else {
-            tryZXing(dataUrl);
-          }
+          // Resize to 1280px wide — large phone photos silently OOM ZXing
+          _resizeDataUrl(originalUrl, 1280, function(smallUrl) {
+
+            // 1) Try native BarcodeDetector (Chrome / Android)
+            if (window.BarcodeDetector) {
+              var img = new Image();
+              img.onload = function() {
+                new BarcodeDetector().detect(img)
+                  .then(function(codes) {
+                    if (codes.length > 0) finish(codes[0].rawValue);
+                    else _zxingDecode(smallUrl, finish);
+                  })
+                  .catch(function() { _zxingDecode(smallUrl, finish); });
+              };
+              img.onerror = function() { _zxingDecode(smallUrl, finish); };
+              img.src = smallUrl;
+            } else {
+              // 2) ZXing on resized image
+              _zxingDecode(smallUrl, finish);
+            }
+          });
         };
         fr.onerror = function() { finish(null); };
         fr.readAsDataURL(file);
