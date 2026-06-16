@@ -83917,7 +83917,7 @@ o=m.gdW(m).length===0?"/":m.gdW(m)
 l=m.gmQ()
 l=l.gac(l)?null:m.gmQ()
 o=A.a6c(m.gjz().length===0?null:m.gjz(),o,l).gwQ()
-n.or(A.r_(o,0,o.length,B.a6,!1),t.X)
+n.uG(A.r_(o,0,o.length,B.a6,!1),t.X)
 q=!0
 s=1
 break
@@ -91180,8 +91180,8 @@ wG(a,b,c){return this.CA(a,!1,b,c)},
 f2(a,b,c){var s=this.wG(a,b,c)
 s.toString
 return this.ek(s)},
-or(a,b){return this.f2(a,null,b)},
-uG(a,b,c){var s,r,q=this,p=q.wG(a,null,b)
+uG(a,b){return this.f2(a,null,b)},
+or(a,b,c){var s,r,q=this,p=q.wG(a,null,b)
 p.toString
 s=A.aKP(p,B.pd,!1,null)
 r=q.e
@@ -104331,7 +104331,7 @@ return A.k(q.d.lC(),$async$BF)
 case 2:if(o.i2(b))q.agw()
 else{p=q.c
 p.toString
-A.aE(p,!1).or("/QuickOrder",t.X)}return A.r(null,r)}})
+A.aE(p,!1).uG("/QuickOrder",t.X)}return A.r(null,r)}})
 return A.t($async$BF,r)},
 agw(){var s=this.c
 s.toString
@@ -104386,7 +104386,7 @@ r.toString
 A.aE(r,!1).ej(null)
 s=s.c
 s.toString
-A.aE(s,!1).or("/QuickOrder",t.X)},
+A.aE(s,!1).uG("/QuickOrder",t.X)},
 $S:6}
 A.aDl.prototype={
 $0(){var s=0,r=A.u(t.P),q,p=this,o,n,m,l,k,j,i
@@ -104419,7 +104419,7 @@ i.ta()
 j.d.tb()}else j.oQ(l,"Could not save")
 j=j.c
 j.toString
-A.aE(j,!1).or("/QuickOrder",t.X)
+A.aE(j,!1).uG("/QuickOrder",t.X)
 case 1:return A.r(q,r)}})
 return A.t($async$$0,r)},
 $S:43}
@@ -104445,8 +104445,8 @@ o=A.aE(p,!1)
 p=t.X
 s=2
 return A.k(q.DQ(),$async$Bb)
-case 2:if(b)o.or("/MainScreenWidget",p)
-else o.or("/LoginScreenWidget",p)
+case 2:if(b)o.or("/MainScreenWidget",p,p)
+else o.or("/LoginScreenWidget",p,p)
 n.D(0,"Done!")
 return A.r(null,r)}})
 return A.t($async$Bb,r)},
@@ -104789,7 +104789,7 @@ s=15
 return A.k(m.vk(j),$async$nw)
 case 15:h=m.c
 if(h!=null){e=t.X
-A.aE(h,!1).uG("/SalesmanScreen",e,e)}s=13
+A.aE(h,!1).or("/SalesmanScreen",e,e)}s=13
 break
 case 14:i=J.ae(l.a,"linkedStores")
 s=t.j.b(i)&&J.i2(i)?16:18
@@ -104802,7 +104802,7 @@ case 18:s=20
 return A.k(m.nK(),$async$nw)
 case 20:case 17:h=m.c
 if(h!=null){e=t.X
-A.aE(h,!1).uG("/MainScreenWidget",e,e)}case 13:s=9
+A.aE(h,!1).or("/MainScreenWidget",e,e)}case 13:s=9
 break
 case 10:m.I(new A.aES(m,l))
 case 9:n.push(6)
@@ -106616,7 +106616,7 @@ s=A.aZp("/MainScreenWidget")
 A.aE(q,!1).a3j(s)
 r=r.c
 r.toString
-A.aE(r,!1).or("/BluetoothDeviceManagement",t.X)},
+A.aE(r,!1).uG("/BluetoothDeviceManagement",t.X)},
 $S:6}
 A.aI0.prototype={
 $0(){var s=0,r=A.u(t.P),q=this,p,o,n
@@ -106978,7 +106978,7 @@ s=8
 return A.k(o.oJ(J.ae(m.a,"token")),$async$rQ)
 case 8:l=o.c
 if(l!=null){k=t.X
-A.aE(l,!1).uG("/MainScreenWidget",k,k)}q=1
+A.aE(l,!1).or("/MainScreenWidget",k,k)}q=1
 s=5
 break
 case 3:q=2
@@ -107706,7 +107706,7 @@ case 8:s=9
 return A.k(o.nK(),$async$pq)
 case 9:l=o.c
 if(l!=null){k=t.X
-A.aE(l,!1).uG("/MainScreenWidget",k,k)}q=1
+A.aE(l,!1).or("/MainScreenWidget",k,k)}q=1
 s=5
 break
 case 3:q=2
@@ -107729,7 +107729,7 @@ case 3:s=4
 return A.k(q.te(),$async$rN)
 case 4:p=q.c
 if(p!=null){o=t.X
-A.aE(p,!1).uG("/LoginScreenWidget",o,o)}return A.r(null,r)}})
+A.aE(p,!1).or("/LoginScreenWidget",o,o)}return A.r(null,r)}})
 return A.t($async$rN,r)},
 F(a){var s,r,q=this,p=null,o=t.p,n=A.a([B.a8e],o),m=q.w
 if(m.length!==0){s=A.y(31,255,255,255)
@@ -107890,7 +107890,7 @@ A.aM_.prototype={
 $1(a){var s,r=this.a.c
 r.toString
 s=t.X
-A.aE(r,!1).uG("/ConfigurationWaitScreenWidget",s,s)},
+A.aE(r,!1).or("/ConfigurationWaitScreenWidget",s,s)},
 $S:4}
 A.vk.prototype={
 O(){return new A.a6g(B.l)},
@@ -107927,7 +107927,7 @@ a5(){this.ao()
 this.Fc()},
 F(a){var s=null,r=$.aVG(),q=A.b88(B.aD,B.as,B.d5,B.as,B.k),p=A.ay(12),o=A.ay(12),n=A.ay(12)
 n=A.aYR(s,!1,s,s,s,s,new A.eu(4,o,B.q),new A.eu(4,p,B.Hi),new A.eu(4,A.ay(12),B.Hg),s,s,B.k,!0,B.la,B.ms,s,s,new A.eu(4,n,B.pT),new A.eu(4,A.ay(12),B.Hh),s,s,s,B.kp,s,s,!1,!1,B.kp,s,s,s,s,s)
-return new A.EK(r,new A.be(s,t.VL),"/",A.bjV(),new A.aFZ(),"Mandel Distributions",A.HZ(B.Gv,B.Hq,s,q,new A.wU(A.dO(s,s,B.as,s,s,s,0,s,s,B.k,s,s,s,B.y,new A.cH(A.ay(12),B.q),s,s,s,s,s)),"Nunito",n,B.bL,!0),!1,s)},
+return new A.EK(r,new A.be(s,t.VL),"/ConfigurationWaitScreenWidget",A.bjV(),new A.aFZ(),"Mandel Distributions",A.HZ(B.Gv,B.Hq,s,q,new A.wU(A.dO(s,s,B.as,s,s,s,0,s,s,B.k,s,s,s,B.y,new A.cH(A.ay(12),B.q),s,s,s,s,s)),"Nunito",n,B.bL,!0),!1,s)},
 Fc(){var s=0,r=A.u(t.H),q,p=this,o
 var $async$Fc=A.p(function(a,b){if(a===1)return A.q(b,r)
 while(true)switch(s){case 0:s=3
@@ -109291,7 +109291,7 @@ A.ae6.prototype={
 $2(a,b){var s,r=a.b
 if(r!=null)if(r.c===401){r=$.aVG()
 s=$.aA.aa$.z.h(0,r)
-if(s!=null)A.aE(s,!1).or("/LoginScreenWidget",t.X)}return b.fb(0,a)},
+if(s!=null)A.aE(s,!1).uG("/LoginScreenWidget",t.X)}return b.fb(0,a)},
 $S:125}
 A.ZQ.prototype={}
 A.lP.prototype={
