@@ -55,6 +55,10 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       navigatorKey: NavigationService.navigatorKey,
       scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+        child: child!,
+      ),
       theme: ThemeData(
           fontFamily: 'Nunito',
           scaffoldBackgroundColor: const Color(0xFFEEF0FA),
