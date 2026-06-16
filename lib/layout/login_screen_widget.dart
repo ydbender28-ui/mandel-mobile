@@ -15,9 +15,14 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget>
   final _formKey            = GlobalKey<FormState>();
   final _emailCtrl          = TextEditingController();
   final _passCtrl           = TextEditingController();
+  final _forgotEmailCtrl    = TextEditingController();
   bool _loading             = false;
   bool _passVisible         = false;
   String _error             = '';
+  bool _showForgot          = false;
+  bool _forgotLoading       = false;
+  bool _forgotSent          = false;
+  String _forgotError       = '';
 
   static const _h1    = Color(0xFF0C0F1E);
   static const _h2    = Color(0xFF1B2860);
@@ -58,6 +63,32 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget>
       setState(() { _error = 'Invalid email or password'; });
     } finally {
       setState(() { _loading = false; });
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    _forgotEmailCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendReset() async {
+    final email = _forgotEmailCtrl.text.trim().toLowerCase();
+    if (email.isEmpty) return;
+    setState(() { _forgotLoading = true; _forgotError = ''; });
+    try {
+      await Dio().post(
+        '${CommonConstants.mandelBaseUrl}/forgot-password',
+        data: { 'email': email },
+      );
+      setState(() { _forgotSent = true; });
+    } catch (e) {
+      final msg = (e is DioException) ? (e.response?.data?['error'] ?? 'Something went wrong') : 'Something went wrong';
+      setState(() { _forgotError = msg; });
+    } finally {
+      setState(() { _forgotLoading = false; });
     }
   }
 
@@ -147,104 +178,7 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget>
                         offset: const Offset(0, 8)),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // email
-                      _label('Email'),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _emailCtrl,
-                        keyboardType: TextInputType.emailAddress,
-                        style: const TextStyle(fontSize: 14, color: Color(0xFF0D1135)),
-                        decoration: const InputDecoration(
-                          hintText: 'you@company.com',
-                          prefixIcon: Icon(Icons.mail_outline_rounded,
-                              size: 18, color: Color(0xFF9AA3C2)),
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                        ),
-                        validator: (v) =>
-                            (v?.trim().isEmpty ?? true) ? 'Email is required' : null,
-                      ),
-                      const SizedBox(height: 18),
-
-                      // password
-                      _label('Password'),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _passCtrl,
-                        obscureText: !_passVisible,
-                        style: const TextStyle(fontSize: 14, color: Color(0xFF0D1135)),
-                        decoration: InputDecoration(
-                          hintText: '••••••••',
-                          prefixIcon: const Icon(Icons.lock_outline_rounded,
-                              size: 18, color: Color(0xFF9AA3C2)),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _passVisible
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              size: 18, color: const Color(0xFF9AA3C2)),
-                            onPressed: () =>
-                                setState(() => _passVisible = !_passVisible),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 14, horizontal: 12),
-                        ),
-                        validator: (v) =>
-                            (v?.trim().isEmpty ?? true) ? 'Password is required' : null,
-                      ),
-
-                      // error
-                      if (_error.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF0F6),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                                color: const Color(0xFFEC4899).withOpacity(0.3))),
-                          child: Row(children: [
-                            const Icon(Icons.error_outline_rounded,
-                                size: 15, color: Color(0xFFEC4899)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(_error,
-                                style: const TextStyle(
-                                    color: Color(0xFFBE185D), fontSize: 12))),
-                          ]),
-                        ),
-                      ],
-
-                      const SizedBox(height: 24),
-
-                      // button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _loading ? null : _signIn,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _indigo,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            elevation: 0,
-                          ),
-                          child: _loading
-                              ? const SizedBox(
-                                  width: 20, height: 20,
-                                  child: CircularProgressIndicator(
-                                      color: Colors.white, strokeWidth: 2))
-                              : const Text('Sign In',
-                                  style: TextStyle(
-                                      fontSize: 15, fontWeight: FontWeight.w700)),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: _showForgot ? _buildForgotCard() : _buildLoginCard(),
                 ),
                 const SizedBox(height: 32),
               ]),
@@ -252,6 +186,169 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget>
           ),
         ),
       ]),
+    );
+  }
+
+  Widget _buildLoginCard() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _label('Email'),
+      const SizedBox(height: 6),
+      TextFormField(
+        controller: _emailCtrl,
+        keyboardType: TextInputType.emailAddress,
+        style: const TextStyle(fontSize: 14, color: Color(0xFF0D1135)),
+        decoration: const InputDecoration(
+          hintText: 'you@company.com',
+          prefixIcon: Icon(Icons.mail_outline_rounded, size: 18, color: Color(0xFF9AA3C2)),
+          contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        ),
+        validator: (v) => (v?.trim().isEmpty ?? true) ? 'Email is required' : null,
+      ),
+      const SizedBox(height: 18),
+      _label('Password'),
+      const SizedBox(height: 6),
+      TextFormField(
+        controller: _passCtrl,
+        obscureText: !_passVisible,
+        style: const TextStyle(fontSize: 14, color: Color(0xFF0D1135)),
+        decoration: InputDecoration(
+          hintText: '••••••••',
+          prefixIcon: const Icon(Icons.lock_outline_rounded, size: 18, color: Color(0xFF9AA3C2)),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _passVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              size: 18, color: const Color(0xFF9AA3C2)),
+            onPressed: () => setState(() => _passVisible = !_passVisible),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        ),
+        validator: (v) => (v?.trim().isEmpty ?? true) ? 'Password is required' : null,
+      ),
+      if (_error.isNotEmpty) ...[
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF0F6),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFEC4899).withOpacity(0.3))),
+          child: Row(children: [
+            const Icon(Icons.error_outline_rounded, size: 15, color: Color(0xFFEC4899)),
+            const SizedBox(width: 8),
+            Expanded(child: Text(_error,
+              style: const TextStyle(color: Color(0xFFBE185D), fontSize: 12))),
+          ]),
+        ),
+      ],
+      const SizedBox(height: 24),
+      SizedBox(
+        width: double.infinity,
+        height: 48,
+        child: ElevatedButton(
+          onPressed: _loading ? null : _signIn,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _indigo,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 0,
+          ),
+          child: _loading
+              ? const SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : const Text('Sign In', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Center(
+        child: GestureDetector(
+          onTap: () => setState(() { _showForgot = true; _forgotSent = false; _forgotError = ''; _forgotEmailCtrl.clear(); }),
+          child: Text('Forgot your password?',
+            style: TextStyle(fontSize: 12, color: _indigo, decoration: TextDecoration.underline)),
+        ),
+      ),
+    ],
+  );
+
+  Widget _buildForgotCard() {
+    if (_forgotSent) {
+      return Column(
+        children: [
+          const Icon(Icons.mark_email_read_outlined, size: 40, color: Color(0xFF4F46E5)),
+          const SizedBox(height: 14),
+          const Text('Check your email', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF0D1135))),
+          const SizedBox(height: 8),
+          Text('We sent a password reset link to ${_forgotEmailCtrl.text.trim()}.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: () => setState(() { _showForgot = false; _forgotSent = false; }),
+            child: Text('Back to Sign In',
+              style: TextStyle(fontSize: 13, color: _indigo, decoration: TextDecoration.underline)),
+          ),
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Reset your password',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF0D1135))),
+        const SizedBox(height: 6),
+        const Text('Enter your email and we\'ll send you a link to set a new password.',
+          style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+        const SizedBox(height: 20),
+        _label('Email'),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _forgotEmailCtrl,
+          keyboardType: TextInputType.emailAddress,
+          style: const TextStyle(fontSize: 14, color: Color(0xFF0D1135)),
+          decoration: const InputDecoration(
+            hintText: 'you@company.com',
+            prefixIcon: Icon(Icons.mail_outline_rounded, size: 18, color: Color(0xFF9AA3C2)),
+            contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+          ),
+        ),
+        if (_forgotError.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF0F6),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFEC4899).withOpacity(0.3))),
+            child: Text(_forgotError, style: const TextStyle(color: Color(0xFFBE185D), fontSize: 12)),
+          ),
+        ],
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            onPressed: _forgotLoading ? null : _sendReset,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _indigo,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: _forgotLoading
+                ? const SizedBox(width: 20, height: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('Send Reset Link', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: GestureDetector(
+            onTap: () => setState(() { _showForgot = false; _forgotError = ''; }),
+            child: Text('Back to Sign In',
+              style: TextStyle(fontSize: 13, color: _indigo, decoration: TextDecoration.underline)),
+          ),
+        ),
+      ],
     );
   }
 
