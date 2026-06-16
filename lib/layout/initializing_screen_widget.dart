@@ -37,9 +37,9 @@ class _InitializingWaitScreenWidgetState
     final navigator = Navigator.of(context);
     bool isSignedIn = await checkSessionIsExist();
     if (isSignedIn) {
-      navigator.pushNamed(CommonConstants.mainScreenUrl);
+      navigator.pushReplacementNamed(CommonConstants.mainScreenUrl);
     } else {
-      navigator.pushNamed(CommonConstants.loginScreenUrl);
+      navigator.pushReplacementNamed(CommonConstants.loginScreenUrl);
     }
     _streamController.sink.add('Done!');
   }

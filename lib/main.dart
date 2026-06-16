@@ -118,7 +118,7 @@ class _MyAppState extends State<MyApp> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
           )),
-      initialRoute: CommonConstants.baseUrl,
+      initialRoute: CommonConstants.configurationScreenUrl,
       onGenerateRoute: RouteGenerator.generateRoute,
     );
   }
