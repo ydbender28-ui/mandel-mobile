@@ -7,6 +7,7 @@ import 'package:mandel_mobile_app/model/invoice_line_item_dto.dart';
 import 'package:mandel_mobile_app/model/invoice_search_result_dto.dart';
 import 'package:mandel_mobile_app/model/media_dto.dart';
 import 'package:mandel_mobile_app/service/invoice_service.dart';
+import 'package:mandel_mobile_app/utility/auth_support_utility.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
@@ -22,7 +23,7 @@ class InvoiceScreen extends StatefulWidget {
 }
 
 class _InvoiceScreenState extends State<InvoiceScreen>
-    with MessageUtility, CommonUtility {
+    with MessageUtility, CommonUtility, AuthSupportUtility {
   final _invoiceService = InvoiceService();
   final _scrollController = ScrollController();
   bool _hasMore = true;
@@ -57,6 +58,15 @@ class _InvoiceScreenState extends State<InvoiceScreen>
     super.initState();
     _setScrollListener();
     _invoiceData = _loadInvoices();
+  }
+
+  Future<void> _downloadPdf(int arhId) async {
+    final token = await getTokenFromSession();
+    final url = '${CommonConstants.mandelBaseUrl}/invoice/$arhId/pdf?token=${Uri.encodeComponent(token)}';
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _buildBackButton() {
@@ -316,6 +326,24 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                             : Colors.grey),
                   ],
                 ),
+                if (invoice.arhId != null) ...[
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _downloadPdf(invoice.arhId!),
+                      icon: const Icon(Icons.download_rounded, size: 16),
+                      label: const Text('Download PDF',
+                          style: TextStyle(fontSize: 13)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ),
+                ],
                 if (invoice.reference != null) ...[
                   const SizedBox(height: 4),
                   Row(

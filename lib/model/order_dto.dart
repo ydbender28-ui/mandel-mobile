@@ -12,6 +12,7 @@ class OrderDto {
   DateTime? deliveryDate;
   String? notes;
   double? total;
+  int? lineCount;
   List<OrderItem>? orderItems;
   String? orderSource;
   InvoiceDto? invoice;
@@ -56,6 +57,7 @@ class OrderDto {
 
     notes = json['notes'];
     total = json['total'] == null ? 0.0 : json['total'].toDouble();
+    lineCount = json['lineCount'] as int?;
 
     if (json['orderItems'] != null) {
       orderItems = <OrderItem>[];

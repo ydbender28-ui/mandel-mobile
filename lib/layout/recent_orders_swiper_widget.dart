@@ -219,7 +219,7 @@ class _RecentOrderSwiperState extends State<RecentOrderSwiper>
                         style: TextStyle(
                             fontSize: 12, fontWeight: FontWeight.w500),
                       ),
-                      Text('${orderDto.orderItems!.length}',
+                      Text('${orderDto.lineCount ?? orderDto.orderItems?.length ?? 0}',
                           style: const TextStyle(
                               fontSize: 12, fontWeight: FontWeight.w500))
                     ],
