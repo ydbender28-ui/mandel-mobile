@@ -23,4 +23,8 @@ class OrderService with CommonUtility {
   Future<Response> deleteOrder(int orderId) {
     return DioClient().dio.delete(buildUrl("/orders/$orderId"));
   }
+
+  Future<Response> getOrderItems(dynamic orderId) {
+    return DioClient().dio.get(buildUrl("/orders/$orderId/items"));
+  }
 }

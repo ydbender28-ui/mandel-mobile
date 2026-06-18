@@ -1,7 +1,7 @@
 import 'package:card_swiper/card_swiper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
+import 'package:mandel_mobile_app/layout/order_detail_widget.dart';
 import 'package:mandel_mobile_app/model/order_dto.dart';
 import 'package:mandel_mobile_app/model/order_search_result_dto.dart';
 import 'package:mandel_mobile_app/service/order_service.dart';
@@ -135,13 +135,9 @@ class _RecentOrderSwiperState extends State<RecentOrderSwiper>
   Widget _buildOrderCard(OrderDto orderDto, int index) {
     return InkWell(
       onTap: () {
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-          builder: (context) {
-            return const MainScreenWidget(
-              defaultIndex: 2,
-            );
-          },
-        ), (route) => false);
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => OrderDetailWidget(orderDto: orderDto),
+        ));
       },
       child: Container(
         decoration: BoxDecoration(

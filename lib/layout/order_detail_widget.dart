@@ -1,24 +1,23 @@
-import 'package:flutter/foundation.dart';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:mandel_mobile_app/db/entity/order_item_entity.dart';
 import 'package:mandel_mobile_app/db/entity/order_master_entity.dart';
 import 'package:mandel_mobile_app/db/repository/order_master_repository.dart';
 import 'package:mandel_mobile_app/db/repository/order_repository.dart';
 import 'package:mandel_mobile_app/db/repository/user_master_repository.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/multi_action_confirmation_widget.dart';
+import 'package:mandel_mobile_app/layout/invoice_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/order_and_return_screen_widget.dart';
+import 'package:mandel_mobile_app/model/invoice_dto.dart';
 import 'package:mandel_mobile_app/model/order_dto.dart';
 import 'package:mandel_mobile_app/model/user_dto.dart';
+import 'package:mandel_mobile_app/service/invoice_service.dart';
 import 'package:mandel_mobile_app/service/order_service.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 import 'package:mandel_mobile_app/utility/message_utility.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailWidget extends StatefulWidget {
   final OrderDto orderDto;
@@ -34,6 +33,34 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget>
   final OrderMasterRepository orderMasterRepo = OrderMasterRepository();
   final UserMasterRepository userRepo = UserMasterRepository();
   final OrderRepository orderRepo = OrderRepository();
+
+  late Future<List<Map<String, dynamic>>> _itemsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _itemsFuture = _loadItems();
+  }
+
+  Future<List<Map<String, dynamic>>> _loadItems() async {
+    final id = widget.orderDto.id;
+    if (id == null) return [];
+    try {
+      final res = await OrderService().getOrderItems(id);
+      if (res.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(res.data['items'] ?? []);
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
+    final datePart = raw.split('T').first;
+    final parts = datePart.split('-');
+    if (parts.length != 3) return datePart;
+    return '${parts[1]}/${parts[2]}/${parts[0]}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,173 +160,71 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget>
 
   _buildOrderList(BuildContext context, OrderDto orderDto) {
     return Expanded(
-      child: ListView.separated(
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return Slidable(
-              startActionPane: ActionPane(
-                motion: const DrawerMotion(),
-                children: [
-                  Visibility(
-                    visible:
-                        orderDto.orderState == CommonConstants.statusComplete,
-                    child: SlidableAction(
-                      flex: 1,
-                      onPressed: (context) {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    OrderAndReturnScreenWidget(
-                                      order: orderDto,
-                                      index: index,
-                                      fromOrder: true,
-                                      onClose: () {},
-                                    )));
-                      },
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      icon: Icons.assignment_return_sharp,
-                      label: 'Return',
-                    ),
-                  ),
-                ],
-              ),
-              child: Container(
-                margin: const EdgeInsets.only(
-                    left: 15, right: 15, top: 10, bottom: 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 230,
-                          child: Text(
-                            orderDto.orderItems![index].getProductName(),
-                            softWrap: false,
-                            overflow: TextOverflow.fade,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(right: 10),
-                              child: Row(
-                                children: [
-                                  const Text(
-                                    'Category : ',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: CommonCustomColor.menuItemColor),
-                                  ),
-                                  SizedBox(
-                                    width: 150,
-                                    child: Text(
-                                      orderDto.orderItems![index]
-                                          .getCategoryName(),
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          color: CommonCustomColor
-                                              .defaultTextColor),
-                                      softWrap: false,
-                                      overflow: TextOverflow.fade,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Row(
-                              children: [
-                                const Text(
-                                  'Brand : ',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: CommonCustomColor.menuItemColor),
-                                ),
-                                SizedBox(
-                                  width: 150,
-                                  child: Text(
-                                    orderDto.orderItems![index].getBrandName(),
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        color:
-                                            CommonCustomColor.defaultTextColor),
-                                    softWrap: false,
-                                    overflow: TextOverflow.fade,
-                                  ),
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(right: 10),
-                              child: Row(
-                                children: [
-                                  const Text(
-                                    'Size : ',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: CommonCustomColor.menuItemColor),
-                                  ),
-                                  Text(
-                                    orderDto.orderItems![index].getSize(),
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        color:
-                                            CommonCustomColor.defaultTextColor),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                const Text('Price : ',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color:
-                                            CommonCustomColor.menuItemColor)),
-                                Text(
-                                  '${orderDto.orderItems![index].unitPrice} x ${orderDto.orderItems![index].quantity}',
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      color:
-                                          CommonCustomColor.defaultTextColor),
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Text(orderDto.orderItems![index].getSubTotal(),
-                        style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: CommonCustomColor.defaultTextColor))
-                  ],
-                ),
-              ),
+      child: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _itemsFuture,
+        builder: (ctx, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final items = snap.data ?? [];
+          if (items.isEmpty) {
+            return const Center(
+              child: Text('No items found',
+                  style: TextStyle(color: Colors.grey, fontSize: 14)),
             );
-          },
-          separatorBuilder: (context, index) {
-            return const Divider(
-              indent: 10,
-              endIndent: 10,
-            );
-          },
-          itemCount: orderDto.orderItems!.length),
+          }
+          return ListView.separated(
+            itemCount: items.length,
+            separatorBuilder: (_, __) =>
+                const Divider(indent: 15, endIndent: 15),
+            itemBuilder: (_, i) => _buildItemRow(items[i]),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildItemRow(Map<String, dynamic> item) {
+    final name = (item['name'] ?? 'Unknown').toString();
+    final code = (item['code'] ?? '').toString();
+    final qty = (item['qty'] ?? 0).toDouble();
+    final price = (item['price'] ?? 0).toDouble();
+    final total = (item['total'] ?? 0).toDouble();
+    final qtyStr =
+        qty % 1 == 0 ? qty.toInt().toString() : qty.toStringAsFixed(1);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600,
+                        color: CommonCustomColor.defaultTextColor)),
+                if (code.isNotEmpty)
+                  Text('#$code',
+                      style: const TextStyle(
+                          fontSize: 11, color: Colors.grey)),
+                const SizedBox(height: 2),
+                Text('$qtyStr × \$${price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        fontSize: 12,
+                        color: CommonCustomColor.menuItemColor)),
+              ],
+            ),
+          ),
+          Text('\$${total.toStringAsFixed(2)}',
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: CommonCustomColor.defaultTextColor)),
+        ],
+      ),
     );
   }
 
@@ -348,29 +273,41 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget>
         children: [
           Expanded(
             child: ElevatedButton(
-                onPressed: () async {
-                  if (orderDto.invoice != null) {
-                    try {
-                      final Uri _url =
-                          Uri.parse(orderDto.invoice!.reference!.url!);
-                      await launchUrl(_url);
-                    } catch (error) {
-                      debugPrint(error.toString());
+              onPressed: orderDto.invoice != null
+                  ? () {
+                      final inv = orderDto.invoice!;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => InvoiceDetailScreen(
+                            invoice: InvoiceDto(
+                              arhId: orderDto.id,
+                              id: inv.id,
+                              number: inv.number,
+                              amount: orderDto.total,
+                            ),
+                            invoiceService: InvoiceService(),
+                            formatDate: _formatDate,
+                          ),
+                        ),
+                      );
                     }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: CommonCustomColor.fieldColor,
-                    minimumSize: const Size.fromHeight(50)
-                    // Background color
-                    ),
-                child: const Text(
-                  'View Receipt',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: CommonCustomColor.menuItemColor),
-                )),
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CommonCustomColor.fieldColor,
+                minimumSize: const Size.fromHeight(50),
+              ),
+              child: Text(
+                'View Invoice',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: orderDto.invoice != null
+                      ? CommonCustomColor.menuItemColor
+                      : Colors.grey,
+                ),
+              ),
+            ),
           ),
           const SizedBox(
             width: 20,
