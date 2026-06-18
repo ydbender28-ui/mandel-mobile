@@ -819,7 +819,7 @@ class ProductListWidgetState extends State<ProductListWidget>
           const SizedBox(height: 2),
           Text(
             '#${productDt.getProductCode()}',
-            style: TextStyle(fontSize: 10, color: Colors.white.withOpacity(0.4)),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withOpacity(0.65)),
           ),
           const SizedBox(height: 1),
           Text(
