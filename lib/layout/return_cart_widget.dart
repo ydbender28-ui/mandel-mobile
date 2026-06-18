@@ -156,7 +156,9 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
               productDetailsOptions: ProductDetailsOptions(
                   showAddToCart: false, showReturn: true),
             ),
-          );
+          ).then((_) {
+            if (mounted) setState(() {});
+          });
         },
       ),
       ConfirmationAction(

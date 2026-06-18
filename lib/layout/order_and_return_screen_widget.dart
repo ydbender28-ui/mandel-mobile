@@ -285,7 +285,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
   }
 
   _buildInformation(ProductDto product) {
-    bool piecePrice = returnTypeValue == returnTypeValue[1];
+    bool piecePrice = returnTypeValue == returnTypes[1];
     return Container(
       margin: const EdgeInsets.only(left: 21, right: 21, top: 50, bottom: 30),
       child: Row(
@@ -730,39 +730,20 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                         ..._buildReasonList(setState),
                         _buildOtherReasonInput(),
                         // Pack condition section
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         const Text('Pack Condition',
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                        RadioListTile<String>(
-                          contentPadding: EdgeInsets.zero,
-                          visualDensity: const VisualDensity(
-                              horizontal: VisualDensity.minimumDensity,
-                              vertical: VisualDensity.minimumDensity),
-                          title: const Text('Full Pack'),
-                          value: 'FULL_PACK',
-                          groupValue: _packCondition,
-                          onChanged: (v) => setState(() => _packCondition = v!),
-                        ),
-                        if (hasPieceOption)
-                          RadioListTile<String>(
-                            contentPadding: EdgeInsets.zero,
-                            visualDensity: const VisualDensity(
-                                horizontal: VisualDensity.minimumDensity,
-                                vertical: VisualDensity.minimumDensity),
-                            title: const Text('By Piece'),
-                            value: 'PIECE',
-                            groupValue: _packCondition,
-                            onChanged: (v) => setState(() => _packCondition = v!),
-                          ),
-                        RadioListTile<String>(
-                          contentPadding: EdgeInsets.zero,
-                          visualDensity: const VisualDensity(
-                              horizontal: VisualDensity.minimumDensity,
-                              vertical: VisualDensity.minimumDensity),
-                          title: const Text('Partial / Damaged'),
-                          value: 'PARTIAL',
-                          groupValue: _packCondition,
-                          onChanged: (v) => setState(() => _packCondition = v!),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            _packOptionCard(setState, 'FULL_PACK', Icons.inventory_2_outlined, 'Full\nPack'),
+                            const SizedBox(width: 8),
+                            if (hasPieceOption) ...[
+                              _packOptionCard(setState, 'PIECE', Icons.filter_1_outlined, 'By\nPiece'),
+                              const SizedBox(width: 8),
+                            ],
+                            _packOptionCard(setState, 'PARTIAL', Icons.broken_image_outlined, 'Partial /\nDamaged'),
+                          ],
                         ),
                         // Credit preview — only shown after reason is selected
                         if (_reasonSelected)
@@ -883,22 +864,60 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
     );
   }
 
+  Widget _packOptionCard(StateSetter setState, String value, IconData icon, String label) {
+    final bool selected = _packCondition == value;
+    const accent = Color(0xFF4F46E5);
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _packCondition = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          decoration: BoxDecoration(
+            color: selected ? accent.withOpacity(0.10) : Colors.grey.shade50,
+            border: Border.all(
+              color: selected ? accent : Colors.grey.shade300,
+              width: selected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24, color: selected ? accent : Colors.grey.shade500),
+              const SizedBox(height: 6),
+              Text(label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? accent : Colors.grey.shade700,
+                  height: 1.3,
+                )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   _buildReturnProductButton(StateSetter state, ProductDto productDto) {
     return Container(
       margin: const EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10),
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           final bool piecePrice = _packCondition == 'PIECE';
           final double basePrice = getProductUnitPrice(piecePrice);
           final double returnPrice = _packCondition == 'PARTIAL'
               ? basePrice * _damagedReturnPct / 100
               : basePrice;
-          CommonReturnUtility().addToReturnList(
+          await CommonReturnUtility().addToReturnList(
               productDto: productDto,
               returnReason: groupValue,
               returnType: _packCondition,
               qty: productDto.tempQty ?? 1,
               returnPrice: returnPrice);
+          if (!mounted) return;
           // Return-only flow: pop dialog + detail screen + search screen → back to return cart
           if (!widget.showAddToCart && widget.showReturn) {
             Navigator.of(context)..pop()..pop()..pop();
