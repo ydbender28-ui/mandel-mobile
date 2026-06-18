@@ -555,13 +555,20 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
     return [];
   }
 
+  String _ptypeLabel(String? ptype) {
+    if (ptype == null || ptype.isEmpty) return 'Other';
+    final p = ptype.toUpperCase();
+    if (p.contains('CIG')) return 'Cigarettes';
+    if (p == 'OTP' || p.contains('TOB')) return 'Tobacco';
+    return ptype;
+  }
+
   @override
   Widget build(BuildContext context) {
     final inv = widget.invoice;
     final isOpen = inv.isOpen ?? (inv.due != null && inv.due! > 0);
     return Column(
       children: [
-        // Header
         Padding(
           padding: const EdgeInsets.only(right: 8, top: 4),
           child: Align(
@@ -572,214 +579,330 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
             ),
           ),
         ),
-        Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Invoice #${inv.number}',
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
-                        if (inv.invoiceDate != null)
-                          Text(
-                            '${widget.formatDate(inv.invoiceDate)}'
-                            '${inv.dueDate != null ? "  •  Due ${widget.formatDate(inv.dueDate)}" : ""}',
-                            style: const TextStyle(
-                                fontSize: 13, color: Colors.grey),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isOpen
-                          ? Colors.red.shade50
-                          : Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: isOpen
-                              ? Colors.red.shade300
-                              : Colors.green.shade300),
-                    ),
-                    child: Text(
-                      isOpen ? 'OPEN' : 'PAID',
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isOpen
-                              ? Colors.red.shade700
-                              : Colors.green.shade700),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Totals row
-            Container(
-              margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _summaryCell('Total',
-                      '\$${(inv.amount ?? 0).toStringAsFixed(2)}', Colors.black87),
-                  _divider(),
-                  _summaryCell('Paid',
-                      '\$${(inv.paid ?? 0).toStringAsFixed(2)}', Colors.green.shade700),
-                  _divider(),
-                  _summaryCell('Balance',
-                      '\$${(inv.due ?? 0).toStringAsFixed(2)}',
-                      (inv.due ?? 0) > 0 ? Colors.red.shade700 : Colors.grey),
-                ],
-              ),
-            ),
-            // Items header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              color: CommonCustomColor.mandelPrimaryColor.withOpacity(0.08),
-              child: const Row(
-                children: [
-                  Expanded(
-                      flex: 2,
-                      child: Text('Item',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey))),
-                  SizedBox(
-                      width: 50,
-                      child: Text('Qty',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey))),
-                  SizedBox(
-                      width: 70,
-                      child: Text('Price',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey))),
-                  SizedBox(
-                      width: 80,
-                      child: Text('Total',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey))),
-                ],
-              ),
-            ),
-            // Items list
-            Expanded(
-              child: FutureBuilder<List<InvoiceLineItemDto>>(
-                future: _itemsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  final items = snapshot.data ?? [];
-                  if (items.isEmpty) {
-                    return const Center(
-                        child: Text('No line items found.',
-                            style:
-                                TextStyle(color: Colors.grey, fontSize: 14)));
-                  }
-                  return ListView.separated(
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) =>
-                        const Divider(height: 1, indent: 20, endIndent: 20),
-                    itemBuilder: (context, index) =>
-                        _buildItemRow(items[index]),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-  }
-
-  Widget _buildItemRow(InvoiceLineItemDto item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(item.name ?? '',
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w500)),
-                if (item.code != null)
-                  Text('#${item.code}',
-                      style: const TextStyle(
-                          fontSize: 11, color: Colors.grey)),
+                _buildHeader(inv, isOpen),
+                const SizedBox(height: 16),
+                FutureBuilder<List<InvoiceLineItemDto>>(
+                  future: _itemsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                    final items = snapshot.data ?? [];
+                    if (items.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: Text('No line items found.',
+                              style: TextStyle(color: Colors.grey, fontSize: 14)),
+                        ),
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildItemsTable(items),
+                        const SizedBox(height: 16),
+                        _buildSummary(items, inv),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
-          SizedBox(
-            width: 50,
-            child: Text(
-              item.qty % 1 == 0
-                  ? item.qty.toInt().toString()
-                  : item.qty.toStringAsFixed(1),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13),
-            ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(InvoiceDto inv, bool isOpen) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFDDE3ED)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('MANDEL WHOLESALE',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1A3A5C),
+                      letterSpacing: 0.5)),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isOpen ? Colors.red.shade50 : Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                      color: isOpen
+                          ? Colors.red.shade300
+                          : Colors.green.shade300),
+                ),
+                child: Text(
+                  isOpen ? 'OPEN' : 'PAID',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isOpen
+                          ? Colors.red.shade700
+                          : Colors.green.shade700),
+                ),
+              ),
+            ],
           ),
-          SizedBox(
-            width: 70,
-            child: Text('\$${item.price.toStringAsFixed(2)}',
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontSize: 13)),
+          const SizedBox(height: 10),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('INVOICE',
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1)),
+                    Text('#${inv.number ?? ''}',
+                        style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1A3A5C))),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (inv.invoiceDate != null) ...[
+                    const Text('Date',
+                        style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    Text(widget.formatDate(inv.invoiceDate),
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600)),
+                  ],
+                  if (inv.dueDate != null) ...[
+                    const SizedBox(height: 4),
+                    const Text('Due',
+                        style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    Text(widget.formatDate(inv.dueDate),
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600)),
+                  ],
+                ],
+              ),
+            ],
           ),
-          SizedBox(
-            width: 80,
-            child: Text('\$${item.total.toStringAsFixed(2)}',
-                textAlign: TextAlign.right,
-                style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _amountChip('Invoice Total', inv.amount),
+              _amountChip('Paid', inv.paid, color: Colors.green.shade700),
+              _amountChip('Balance Due', inv.due,
+                  color: (inv.due ?? 0) > 0
+                      ? Colors.red.shade700
+                      : Colors.grey),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _summaryCell(String label, String value, Color valueColor) {
+  Widget _amountChip(String label, double? value, {Color? color}) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 11, color: Colors.grey)),
-        const SizedBox(height: 2),
-        Text(value,
+        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        Text('\$${(value ?? 0).toStringAsFixed(2)}',
             style: TextStyle(
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: valueColor)),
+                color: color ?? Colors.black87)),
       ],
     );
   }
 
-  Widget _divider() {
-    return Container(
-        width: 1, height: 30, color: Colors.grey.shade300);
+  Widget _buildItemsTable(List<InvoiceLineItemDto> items) {
+    const hStyle = TextStyle(
+        fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white);
+    const cStyle = TextStyle(fontSize: 11);
+    const dStyle = TextStyle(fontSize: 11, color: Colors.grey);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                color: const Color(0xFF1A3A5C),
+                child: Row(children: [
+                  _tc('#', 28, style: hStyle),
+                  _tc('Code', 52, style: hStyle),
+                  _tc('Description', 180, style: hStyle),
+                  _tc('UPC', 98, style: hStyle),
+                  _tc('Qty', 38, style: hStyle, align: TextAlign.center),
+                  _tc('Price', 62, style: hStyle, align: TextAlign.right),
+                  _tc('Ext', 68, style: hStyle, align: TextAlign.right),
+                ]),
+              ),
+              ...items.asMap().entries.map((e) {
+                final idx = e.key;
+                final item = e.value;
+                return Container(
+                  color: idx.isOdd
+                      ? const Color(0xFFF7F9FC)
+                      : Colors.white,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _tc('${item.rowNum ?? idx + 1}', 28, style: dStyle),
+                      _tc(item.code ?? '', 52, style: dStyle),
+                      _tc(item.name ?? '', 180, style: cStyle),
+                      _tc(item.upc ?? '', 98, style: dStyle),
+                      _tc(
+                        item.qty % 1 == 0
+                            ? item.qty.toInt().toString()
+                            : item.qty.toStringAsFixed(1),
+                        38,
+                        style: cStyle,
+                        align: TextAlign.center,
+                      ),
+                      _tc('\$${item.price.toStringAsFixed(2)}', 62,
+                          style: cStyle, align: TextAlign.right),
+                      _tc('\$${item.total.toStringAsFixed(2)}', 68,
+                          style: const TextStyle(
+                              fontSize: 11, fontWeight: FontWeight.w600),
+                          align: TextAlign.right),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+
+  Widget _tc(String text, double width,
+      {TextStyle? style, TextAlign? align}) {
+    return SizedBox(
+      width: width,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 7),
+        child: Text(text,
+            style: style,
+            textAlign: align,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis),
+      ),
+    );
+  }
+
+  Widget _buildSummary(List<InvoiceLineItemDto> items, InvoiceDto inv) {
+    final Map<String, _TypeTotals> byType = {};
+    for (final item in items) {
+      final key = _ptypeLabel(item.ptype);
+      byType.putIfAbsent(key, () => _TypeTotals());
+      byType[key]!.count++;
+      byType[key]!.total += item.total;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (byType.length > 1) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F9FC),
+              border: Border.all(color: const Color(0xFFDDE3ED)),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('SUMMARY BY TYPE',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey,
+                        letterSpacing: 1)),
+                const SizedBox(height: 8),
+                ...byType.entries.map((e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(e.key,
+                              style: const TextStyle(fontSize: 12)),
+                          Text(
+                              '${e.value.count} items  •  \$${e.value.total.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    )),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+        Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A3A5C),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${items.length} line items',
+                  style: const TextStyle(
+                      fontSize: 13, color: Colors.white70)),
+              Text('\$${(inv.amount ?? 0).toStringAsFixed(2)}',
+                  style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TypeTotals {
+  int count = 0;
+  double total = 0;
 }
 
 class InvoiceDetailScreen extends StatelessWidget {
