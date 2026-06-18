@@ -289,14 +289,12 @@ class _CartWidgetState extends State<CartWidget>
 
   Widget _buildSummaryCard() {
     const typeOrder = {'Cigs': 0, 'Tobacco': 1, 'Non-Tobacco': 2};
-    final Map<String, ({int qty, double total})> byType = {};
+    final Map<String, _CartTypeTotals> byType = {};
     for (final item in CartState.items) {
       final key = _typeLabel(item.categoryName);
-      final prev = byType[key];
-      byType[key] = (
-        qty: (prev?.qty ?? 0) + (item.qty ?? 0),
-        total: (prev?.total ?? 0.0) + (item.subTotal ?? 0.0),
-      );
+      byType.putIfAbsent(key, () => _CartTypeTotals());
+      byType[key]!.qty += item.qty ?? 0;
+      byType[key]!.total += item.subTotal ?? 0.0;
     }
     final sorted = byType.entries.toList()
       ..sort((a, b) => (typeOrder[a.key] ?? 9).compareTo(typeOrder[b.key] ?? 9));
@@ -513,4 +511,9 @@ class _CartWidgetState extends State<CartWidget>
       if (mounted) setState(() => _isProcessing = false);
     }
   }
+}
+
+class _CartTypeTotals {
+  int qty = 0;
+  double total = 0;
 }
