@@ -311,20 +311,20 @@ class _CartWidgetState extends State<CartWidget>
         FutureBuilder(
           future: OrderRepository().getSubTotal(),
           builder: (_, snap) => _summaryRow(
-            'Subtotal', '\$${snap.data ?? '0.00'}', lineThrough: true),
+            'Subtotal', snap.data ?? '\$0.00', lineThrough: true),
         ),
         const SizedBox(height: 4),
         FutureBuilder(
           future: OrderRepository().getDiscount(),
           builder: (_, snap) => _summaryRow(
-            'Discount', '-\$${snap.data ?? '0.00'}',
+            'Discount', '-${snap.data ?? '\$0.00'}',
             color: const Color(0xFF10B981)),
         ),
         _divLine(),
         FutureBuilder(
           future: OrderRepository().getFormattedGrandTotal(),
           builder: (_, snap) => _summaryRow(
-            'Grand Total', '\$${snap.data ?? '0.00'}',
+            'Grand Total', snap.data ?? '\$0.00',
             large: true, color: _indigo),
         ),
       ]),
