@@ -288,16 +288,11 @@ class _CartWidgetState extends State<CartWidget>
   }
 
   Widget _buildSummaryCard() {
-    const typeOrder = {'Cigs': 0, 'Tobacco': 1, 'Non-Tobacco': 2};
-    final Map<String, _CartTypeTotals> byType = {};
+    final Map<String, int> qtyByType = {'Cigs': 0, 'Tobacco': 0, 'Non-Tobacco': 0};
     for (final item in CartState.items) {
       final key = _typeLabel(item.categoryName);
-      byType.putIfAbsent(key, () => _CartTypeTotals());
-      byType[key]!.qty += item.qty ?? 0;
-      byType[key]!.total += item.subTotal ?? 0.0;
+      qtyByType[key] = (qtyByType[key] ?? 0) + (item.qty ?? 0);
     }
-    final sorted = byType.entries.toList()
-      ..sort((a, b) => (typeOrder[a.key] ?? 9).compareTo(typeOrder[b.key] ?? 9));
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -310,14 +305,9 @@ class _CartWidgetState extends State<CartWidget>
           blurRadius: 12, offset: const Offset(0, 3))],
       ),
       child: Column(children: [
-        if (sorted.isNotEmpty) ...[
-          ...sorted.map((e) => _summaryRow(
-            e.key,
-            '${e.value.qty} × \$${e.value.total.toStringAsFixed(2)}',
-            color: _textLo, bold: false,
-          )),
-          _divLine(),
-        ],
+        ...['Cigs', 'Tobacco', 'Non-Tobacco'].map((label) =>
+          _summaryRow(label, '${qtyByType[label] ?? 0}', color: _textLo, bold: false)),
+        _divLine(),
         FutureBuilder(
           future: OrderRepository().getSubTotal(),
           builder: (_, snap) => _summaryRow(
@@ -513,7 +503,3 @@ class _CartWidgetState extends State<CartWidget>
   }
 }
 
-class _CartTypeTotals {
-  int qty = 0;
-  double total = 0;
-}

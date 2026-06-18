@@ -840,63 +840,54 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
   }
 
   Widget _buildSummary(List<InvoiceLineItemDto> items, InvoiceDto inv) {
-    final Map<String, _TypeTotals> byType = {};
+    final Map<String, double> qtyByType = {'Cigs': 0, 'Tobacco': 0, 'Non-Tobacco': 0};
     for (final item in items) {
       final key = _ptypeLabel(item.ptype);
-      byType.putIfAbsent(key, () => _TypeTotals());
-      byType[key]!.qty += item.qty;
-      byType[key]!.total += item.total;
+      qtyByType[key] = (qtyByType[key] ?? 0) + item.qty;
     }
-
-    const typeOrder = {'Cigs': 0, 'Tobacco': 1, 'Non-Tobacco': 2};
-    final sorted = byType.entries.toList()
-      ..sort((a, b) =>
-          (typeOrder[a.key] ?? 9).compareTo(typeOrder[b.key] ?? 9));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (sorted.isNotEmpty) ...[
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F9FC),
-              border: Border.all(color: const Color(0xFFDDE3ED)),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('SUMMARY BY TYPE',
-                    style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey,
-                        letterSpacing: 1)),
-                const SizedBox(height: 8),
-                ...sorted.map((e) {
-                  final qtyStr = e.value.qty % 1 == 0
-                      ? e.value.qty.toInt().toString()
-                      : e.value.qty.toStringAsFixed(1);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(e.key, style: const TextStyle(fontSize: 12)),
-                        Text(
-                            '$qtyStr × \$${e.value.total.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w500)),
-                      ],
-                    ),
-                  );
-                }),
-              ],
-            ),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F9FC),
+            border: Border.all(color: const Color(0xFFDDE3ED)),
+            borderRadius: BorderRadius.circular(6),
           ),
-          const SizedBox(height: 10),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('SUMMARY BY TYPE',
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey,
+                      letterSpacing: 1)),
+              const SizedBox(height: 8),
+              ...['Cigs', 'Tobacco', 'Non-Tobacco'].map((label) {
+                final qty = qtyByType[label] ?? 0;
+                final qtyStr = qty % 1 == 0
+                    ? qty.toInt().toString()
+                    : qty.toStringAsFixed(1);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(label, style: const TextStyle(fontSize: 12)),
+                      Text(qtyStr,
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
         Container(
           padding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
