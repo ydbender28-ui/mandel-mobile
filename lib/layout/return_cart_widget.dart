@@ -8,12 +8,17 @@ import 'package:mandel_mobile_app/db/repository/return_master_repository.dart';
 import 'package:mandel_mobile_app/db/repository/user_master_repository.dart';
 import 'package:mandel_mobile_app/layout/bottom_sheet_dialog/clear_cart_confirmation_dialog.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/common_cart_number_picker.dart';
+import 'package:mandel_mobile_app/layout/common_custom_widget/multi_action_confirmation_widget.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
+import 'package:mandel_mobile_app/model/product_details_options.dart';
 import 'package:mandel_mobile_app/model/product_dto.dart';
+import 'package:mandel_mobile_app/model/product_search_arguments.dart';
 import 'package:mandel_mobile_app/model/return_dto.dart';
 import 'package:mandel_mobile_app/model/return_item_dto.dart';
+import 'package:mandel_mobile_app/model/scanner_arguments.dart';
 import 'package:mandel_mobile_app/model/user_dto.dart';
 import 'package:mandel_mobile_app/service/return_service.dart';
+import 'package:mandel_mobile_app/utility/barcode_scanner_utility.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
@@ -27,7 +32,7 @@ class ReturnCartWidget extends StatefulWidget {
 }
 
 class _ReturnCartWidgetState extends State<ReturnCartWidget>
-    with CommonUtility, MessageUtility {
+    with CommonUtility, MessageUtility, BarcodeScannerUtility {
   final _otherReasonTextController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -61,6 +66,13 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
         .copyWith(statusBarColor: Colors.transparent));
     return Scaffold(
       backgroundColor: _bg,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddItemSheet,
+        backgroundColor: _indigo,
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text('Add Item',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+      ),
       body: Column(children: [
         _buildHeader(),
         Expanded(
@@ -72,7 +84,7 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
                 _buildOrderList(context),
                 _buildSummary(),
                 _buildPlaceOrderButton(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 80),
               ],
             ),
           ),
@@ -133,6 +145,55 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
           ),
         ),
       ]),
+    );
+  }
+
+  void _showAddItemSheet() {
+    final List<ConfirmationAction> actions = [
+      ConfirmationAction(
+        text: 'Search Products',
+        onSelect: () {
+          Navigator.pop(context);
+          Navigator.of(context).pushNamed(
+            CommonConstants.searchScreenUrl,
+            arguments: ProductSearchArguments(
+              filters: {},
+              startingIndex: 0,
+              productDetailsOptions: ProductDetailsOptions(
+                  showAddToCart: false, showReturn: true),
+            ),
+          );
+        },
+      ),
+      ConfirmationAction(
+        text: 'Scan Barcode',
+        onSelect: () {
+          Navigator.pop(context);
+          navigateToDefaultScanner(
+            context,
+            ScannerArguments(
+              enableRapidMode: false,
+              productDetailsOptions: ProductDetailsOptions(
+                  showAddToCart: false, showReturn: true),
+            ),
+          );
+        },
+      ),
+    ];
+    showModalBottomSheet(
+      context: context,
+      isDismissible: true,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, _) => MultiActionConfirmationWidget(
+          title: 'Add Item to Return',
+          description:
+              'Search for a product by name or scan its barcode to add it to your return.',
+          actions: actions,
+        ),
+      ),
     );
   }
 
