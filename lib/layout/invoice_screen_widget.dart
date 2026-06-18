@@ -598,6 +598,18 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
                         ),
                       );
                     }
+                    if (snapshot.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: Text(
+                            'Error loading items: ${snapshot.error}',
+                            style: const TextStyle(color: Colors.red, fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
                     final items = snapshot.data ?? [];
                     if (items.isEmpty) {
                       return const Padding(

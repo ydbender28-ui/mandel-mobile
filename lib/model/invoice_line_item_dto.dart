@@ -21,7 +21,11 @@ class InvoiceLineItemDto {
 
   factory InvoiceLineItemDto.fromJson(Map<String, dynamic> json) {
     return InvoiceLineItemDto(
-      rowNum: json['rowNum'] as int?,
+      rowNum: json['rowNum'] != null
+          ? (json['rowNum'] is int
+              ? json['rowNum'] as int
+              : int.tryParse(json['rowNum'].toString()))
+          : null,
       code: json['code']?.toString(),
       name: json['name'],
       upc: json['upc']?.toString(),
