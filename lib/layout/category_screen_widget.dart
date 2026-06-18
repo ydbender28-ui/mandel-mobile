@@ -134,15 +134,26 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: const Text(
-            'Categories',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-            ),
+          padding: const EdgeInsets.fromLTRB(8, 12, 20, 16),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                'Categories',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -266,16 +277,17 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
         if (result.connectionState == ConnectionState.done && result.hasData) {
           return Expanded(
             child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 20),
                 itemCount: result.data!.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3, childAspectRatio: 0.88,
+                    crossAxisCount: 4, childAspectRatio: 0.80,
                     crossAxisSpacing: 8, mainAxisSpacing: 8),
                 itemBuilder: (_, index) {
                   final cat = result.data![index];
                   final name = cat.name ?? '';
                   final icon = _kCatIcons[name] ?? Icons.category_rounded;
                   final color = _kCatColors[name] ?? _catColorFallback(index);
+                  final imgUrl = (cat.media?.isNotEmpty == true) ? cat.media![0].url : null;
                   return GestureDetector(
                     onTap: () => Navigator.push(context, MaterialPageRoute(
                         builder: (_) => CategoryProductScreenWidget(categoryDto: cat))),
@@ -284,28 +296,35 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
                         gradient: LinearGradient(
                           colors: [color.withOpacity(0.18), color.withOpacity(0.06)],
                           begin: Alignment.topLeft, end: Alignment.bottomRight),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: color.withOpacity(0.22)),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            width: 52, height: 52,
+                            width: 44, height: 44,
                             decoration: BoxDecoration(
                               color: color.withOpacity(0.15),
                               shape: BoxShape.circle),
-                            child: Icon(icon, color: color, size: 26),
+                            clipBehavior: Clip.antiAlias,
+                            child: imgUrl != null
+                                ? Image.network(
+                                    imgUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Icon(icon, color: color, size: 22),
+                                  )
+                                : Icon(icon, color: color, size: 22),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 5),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: Text(name,
                               textAlign: TextAlign.center,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 11, fontWeight: FontWeight.w700,
+                                fontSize: 9, fontWeight: FontWeight.w700,
                                 color: color, height: 1.2)),
                           ),
                         ],

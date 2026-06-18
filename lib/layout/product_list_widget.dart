@@ -621,6 +621,10 @@ class ProductListWidgetState extends State<ProductListWidget>
   }
 
   Widget _buildQuickAdd(ProductDto product, int qty, {double? salePrice}) {
+    // In return-only mode hide the order quick-add controls entirely
+    if (widget.productDetailsOptions.showReturn && !widget.productDetailsOptions.showAddToCart) {
+      return const SizedBox.shrink();
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

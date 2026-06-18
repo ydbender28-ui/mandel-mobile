@@ -79,6 +79,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
   int _damagedReturnPct = 50;
 
   bool isProcess = false;
+  bool _reasonSelected = false;
 
   @override
   void initState() {
@@ -677,6 +678,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
 
   void _showReturnReasonDialog(ProductDto product) {
     _packCondition = 'FULL_PACK';
+    _reasonSelected = false;
     showModalBottomSheet(
         isScrollControlled: true,
         context: context,
@@ -685,11 +687,12 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
         builder: (context) {
           return StatefulBuilder(
             builder: (context, setState) {
-              final bool isPiece = returnTypeValue == 'PIECE';
-              final double basePrice = getProductUnitPrice(isPiece);
+              final bool isPiece = _packCondition == 'PIECE';
               final bool isPartial = _packCondition == 'PARTIAL';
+              final double basePrice = getProductUnitPrice(isPiece);
               final double creditPrice = isPartial ? basePrice * _damagedReturnPct / 100 : basePrice;
               final double totalCredit = creditPrice * (product.tempQty ?? 1);
+              final bool hasPieceOption = (getProductInfo().singleCount ?? 0) > 0;
 
               return Padding(
                 padding: EdgeInsets.only(
@@ -735,46 +738,58 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                           visualDensity: const VisualDensity(
                               horizontal: VisualDensity.minimumDensity,
                               vertical: VisualDensity.minimumDensity),
-                          title: const Text('Full Pack — full credit'),
+                          title: const Text('Full Pack'),
                           value: 'FULL_PACK',
                           groupValue: _packCondition,
                           onChanged: (v) => setState(() => _packCondition = v!),
                         ),
+                        if (hasPieceOption)
+                          RadioListTile<String>(
+                            contentPadding: EdgeInsets.zero,
+                            visualDensity: const VisualDensity(
+                                horizontal: VisualDensity.minimumDensity,
+                                vertical: VisualDensity.minimumDensity),
+                            title: const Text('By Piece'),
+                            value: 'PIECE',
+                            groupValue: _packCondition,
+                            onChanged: (v) => setState(() => _packCondition = v!),
+                          ),
                         RadioListTile<String>(
                           contentPadding: EdgeInsets.zero,
                           visualDensity: const VisualDensity(
                               horizontal: VisualDensity.minimumDensity,
                               vertical: VisualDensity.minimumDensity),
-                          title: Text('Partial / Damaged — $_damagedReturnPct% credit'),
+                          title: const Text('Partial / Damaged'),
                           value: 'PARTIAL',
                           groupValue: _packCondition,
                           onChanged: (v) => setState(() => _packCondition = v!),
                         ),
-                        // Credit preview
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: isPartial ? const Color(0xFFFFF3E0) : const Color(0xFFE8F5E9),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                isPartial ? 'Credit ($_damagedReturnPct%)' : 'Credit (100%)',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                              ),
-                              Text(
-                                '\$${totalCredit.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w800,
-                                  color: isPartial ? const Color(0xFFE65100) : const Color(0xFF2E7D32),
+                        // Credit preview — only shown after reason is selected
+                        if (_reasonSelected)
+                          Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isPartial ? const Color(0xFFFFF3E0) : const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Return Credit',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  '\$${totalCredit.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w800,
+                                    color: isPartial ? const Color(0xFFE65100) : const Color(0xFF2E7D32),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                         _buildReturnProductButton(setState, product)
                       ],
                     ),
@@ -801,6 +816,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
         onChanged: (value) {
           state(() {
             groupValue = value!;
+            _reasonSelected = true;
           });
         },
       ));
@@ -872,9 +888,9 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
       margin: const EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10),
       child: ElevatedButton(
         onPressed: () {
-          bool piecePrice = returnTypeValue == returnTypes[1];
-          double basePrice = getProductUnitPrice(piecePrice);
-          double returnPrice = _packCondition == 'PARTIAL'
+          final bool piecePrice = _packCondition == 'PIECE';
+          final double basePrice = getProductUnitPrice(piecePrice);
+          final double returnPrice = _packCondition == 'PARTIAL'
               ? basePrice * _damagedReturnPct / 100
               : basePrice;
           CommonReturnUtility().addToReturnList(
@@ -883,9 +899,12 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
               returnType: _packCondition,
               qty: productDto.tempQty ?? 1,
               returnPrice: returnPrice);
-          Navigator.of(context)
-            ..pop()
-            ..pop();
+          // Return-only flow: pop dialog + detail screen + search screen → back to return cart
+          if (!widget.showAddToCart && widget.showReturn) {
+            Navigator.of(context)..pop()..pop()..pop();
+          } else {
+            Navigator.of(context)..pop()..pop();
+          }
         },
         style: ElevatedButton.styleFrom(
           minimumSize: const Size.fromHeight(50),
