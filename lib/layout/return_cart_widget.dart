@@ -66,13 +66,6 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
         .copyWith(statusBarColor: Colors.transparent));
     return Scaffold(
       backgroundColor: _bg,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddItemSheet,
-        backgroundColor: _indigo,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Add Item',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-      ),
       body: Column(children: [
         _buildHeader(),
         Expanded(
@@ -80,11 +73,12 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildAddItemButton(),
                 _buildReturnDetailTitle(),
                 _buildOrderList(context),
                 _buildSummary(),
                 _buildPlaceOrderButton(),
-                const SizedBox(height: 80),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -208,23 +202,65 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
     );
   }
 
+  Widget _buildAddItemButton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: _showAddItemSheet,
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: const Text('Scan or Search Item to Return',
+              style: TextStyle(fontWeight: FontWeight.w700)),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: _indigo,
+            side: const BorderSide(color: _indigo),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ),
+    );
+  }
+
   ///
   ///This method will build order list
   _buildOrderList(BuildContext context) {
     return FutureBuilder(
       future: ReturnItemRepository().getReturnList(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Text('error');
+        if (snapshot.hasError || (snapshot.hasData && snapshot.data!.isEmpty)) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.assignment_return_outlined,
+                      size: 48, color: Colors.grey.shade400),
+                  const SizedBox(height: 12),
+                  Text('No items in return cart',
+                      style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 4),
+                  Text('Tap the button above to add items',
+                      style: TextStyle(
+                          fontSize: 13, color: Colors.grey.shade400)),
+                ],
+              ),
+            ),
+          );
         }
 
         if (!snapshot.hasData) {
-          return Text('empty');
+          return const SizedBox.shrink();
         }
 
-        return SizedBox(
-          height: 360,
-          child: ListView.separated(
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
                 bool piecePrice = snapshot.data![index].returnType == "PIECE";
                 return Container(
@@ -392,8 +428,7 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
                   endIndent: 10,
                 );
               },
-              itemCount: snapshot.data!.length),
-        );
+              itemCount: snapshot.data!.length);
       },
     );
   }
