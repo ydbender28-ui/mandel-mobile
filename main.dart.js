@@ -102318,15 +102318,17 @@ return this.a.at3(a,""+s,!1,B.aY)},
 $S:640}
 A.ayG.prototype={
 $2(a,b){var s=b.b
-return this.a.at2("Subtotal","$"+A.h(s==null?"0.00":s),!0)},
+if(s==null)s="$0.00"
+return this.a.at2("Subtotal",s,!0)},
 $S:89}
 A.ayH.prototype={
 $2(a,b){var s=b.b
-return this.a.at1("Discount","-$"+A.h(s==null?"0.00":s),B.d6)},
+return this.a.at1("Discount","-"+A.h(s==null?"$0.00":s),B.d6)},
 $S:89}
 A.ayI.prototype={
 $2(a,b){var s=b.b
-return this.a.at4("Grand Total","$"+A.h(s==null?"0.00":s),B.a9,!0)},
+if(s==null)s="$0.00"
+return this.a.at4("Grand Total",s,B.a9,!0)},
 $S:89}
 A.ayA.prototype={
 $0(){var s=this.a
