@@ -15,4 +15,8 @@ class ReturnService with CommonUtility {
         .dio
         .post(buildUrl('/product-returns'), data: returnDto.toJson());
   }
+
+  Future<Response> getReturnSettings() {
+    return DioClient().dio.get(buildUrl('/return-settings'));
+  }
 }

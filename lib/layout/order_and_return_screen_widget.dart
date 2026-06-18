@@ -74,7 +74,23 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
 
   String groupValue = 'Unsaleable';
 
+  String _packCondition = 'FULL_PACK';
+
+  int _damagedReturnPct = 50;
+
   bool isProcess = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ReturnService().getReturnSettings().then((resp) {
+      if (resp.statusCode == 200 && resp.data != null && mounted) {
+        setState(() {
+          _damagedReturnPct = (resp.data['damagedReturnPct'] as num?)?.toInt() ?? 50;
+        });
+      }
+    }).catchError((_) {});
+  }
 
   ///
   ///This method will return order item sub total
@@ -554,25 +570,29 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
         children: [
           if (widget.showReturn)
             Expanded(
-              child: ElevatedButton.icon(
-                  onPressed: () {
-                    // _buildReturnTypeBottomSheet(productDto);
-
-                    _showReturnReasonDialog(productDto);
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: CommonCustomColor.defaultTextColor,
-                      minimumSize: const Size.fromHeight(50)
-                      // Background color
-                      ),
-                  icon: const Icon(Icons.assignment_return_outlined),
-                  label: const Text(
-                    'Add to Return',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white),
-                  )),
+              child: productDto.isReturnable == false
+                  ? ElevatedButton.icon(
+                      onPressed: null,
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF9E9E9E),
+                          minimumSize: const Size.fromHeight(50)),
+                      icon: const Icon(Icons.block_outlined),
+                      label: const Text(
+                        'Not Returnable',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                      ))
+                  : ElevatedButton.icon(
+                      onPressed: () {
+                        _showReturnReasonDialog(productDto);
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: CommonCustomColor.defaultTextColor,
+                          minimumSize: const Size.fromHeight(50)),
+                      icon: const Icon(Icons.assignment_return_outlined),
+                      label: const Text(
+                        'Add to Return',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                      )),
             ),
           Visibility(
             visible: !widget.fromOrder,
@@ -656,6 +676,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
   // }
 
   void _showReturnReasonDialog(ProductDto product) {
+    _packCondition = 'FULL_PACK';
     showModalBottomSheet(
         isScrollControlled: true,
         context: context,
@@ -664,6 +685,12 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
         builder: (context) {
           return StatefulBuilder(
             builder: (context, setState) {
+              final bool isPiece = returnTypeValue == 'PIECE';
+              final double basePrice = getProductUnitPrice(isPiece);
+              final bool isPartial = _packCondition == 'PARTIAL';
+              final double creditPrice = isPartial ? basePrice * _damagedReturnPct / 100 : basePrice;
+              final double totalCredit = creditPrice * (product.tempQty ?? 1);
+
               return Padding(
                 padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -686,23 +713,68 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
                                 overflow: TextOverflow.fade,
                               ),
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            const SizedBox(width: 10),
                             IconButton(
                               icon: Image.asset(
                                 'assets/images/mandel_close_icon.png',
                                 width: 24,
                                 height: 24,
                               ),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
+                              onPressed: () => Navigator.of(context).pop(),
                             )
                           ],
                         ),
                         ..._buildReasonList(setState),
                         _buildOtherReasonInput(),
+                        // Pack condition section
+                        const SizedBox(height: 12),
+                        const Text('Pack Condition',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                        RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: const VisualDensity(
+                              horizontal: VisualDensity.minimumDensity,
+                              vertical: VisualDensity.minimumDensity),
+                          title: const Text('Full Pack — full credit'),
+                          value: 'FULL_PACK',
+                          groupValue: _packCondition,
+                          onChanged: (v) => setState(() => _packCondition = v!),
+                        ),
+                        RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: const VisualDensity(
+                              horizontal: VisualDensity.minimumDensity,
+                              vertical: VisualDensity.minimumDensity),
+                          title: Text('Partial / Damaged — $_damagedReturnPct% credit'),
+                          value: 'PARTIAL',
+                          groupValue: _packCondition,
+                          onChanged: (v) => setState(() => _packCondition = v!),
+                        ),
+                        // Credit preview
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isPartial ? const Color(0xFFFFF3E0) : const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                isPartial ? 'Credit ($_damagedReturnPct%)' : 'Credit (100%)',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                '\$${totalCredit.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w800,
+                                  color: isPartial ? const Color(0xFFE65100) : const Color(0xFF2E7D32),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         _buildReturnProductButton(setState, product)
                       ],
                     ),
@@ -800,13 +872,15 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
       margin: const EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10),
       child: ElevatedButton(
         onPressed: () {
-          //Change unit price and add
           bool piecePrice = returnTypeValue == returnTypes[1];
-          double returnPrice = getProductUnitPrice(piecePrice);
+          double basePrice = getProductUnitPrice(piecePrice);
+          double returnPrice = _packCondition == 'PARTIAL'
+              ? basePrice * _damagedReturnPct / 100
+              : basePrice;
           CommonReturnUtility().addToReturnList(
               productDto: productDto,
               returnReason: groupValue,
-              returnType: returnTypeValue,
+              returnType: _packCondition,
               qty: productDto.tempQty ?? 1,
               returnPrice: returnPrice);
           Navigator.of(context)

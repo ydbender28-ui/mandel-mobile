@@ -28,6 +28,7 @@ class ProductDto {
   int? tempQty;
   bool? isSingle;
   bool? isNew;
+  bool? isReturnable;
   int? singleCount;
   String? expiryDate;
 
@@ -50,6 +51,7 @@ class ProductDto {
       this.size,
       this.isSingle,
       this.isNew,
+      this.isReturnable,
       this.singleCount});
 
   ProductDto.fromJson(Map<String, dynamic> json) {
@@ -64,6 +66,7 @@ class ProductDto {
     isSingle = json['isSingle'];
     singleCount = json['singleCount'];
     isNew = json['isNew'];
+    isReturnable = json['isReturnable'] != null ? (json['isReturnable'] == true || json['isReturnable'] == 1) : true;
     expiryDate = json['expiryDate'] as String?;
 
     if (json['brand'] != null) {
@@ -128,6 +131,7 @@ class ProductDto {
     data['isSingle'] = isSingle;
     data['singleCount'] = singleCount;
     data['isNew'] = isNew;
+    data['isReturnable'] = isReturnable;
     // if (null != createdDateTime) {
     //   data['createdDateTime'] = DateFormat('M/d/y').format(createdDateTime!);
     // }
