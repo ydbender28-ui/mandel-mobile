@@ -280,7 +280,7 @@ class _OrderLineItemWidgetState extends State<OrderLineItemWidget>
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w500),
                       ),
-                      Text('${(orderDto.orderItems?.length ?? 0)}',
+                      Text('${orderDto.lineCount ?? orderDto.orderItems?.length ?? 0}',
                           style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.w500))
                     ],
