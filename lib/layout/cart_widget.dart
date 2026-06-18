@@ -10,6 +10,7 @@ import 'package:mandel_mobile_app/layout/bottom_sheet_dialog/clear_cart_confirma
 import 'package:mandel_mobile_app/layout/common_custom_widget/common_cart_number_picker.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
 import 'package:mandel_mobile_app/service/order_service.dart';
+import 'package:mandel_mobile_app/utility/cart_state.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 import 'package:mandel_mobile_app/utility/message_utility.dart';
@@ -277,7 +278,29 @@ class _CartWidgetState extends State<CartWidget>
 
   // ── summary card ─────────────────────────────────────────────────────────
 
+  static String _typeLabel(String? cat) {
+    if (cat == null || cat.isEmpty) return 'Non-Tobacco';
+    const cigSet = {'Cigarettes', 'E-Cigarettes'};
+    const tobSet = {'Tobacco', 'Tobacco Accessories', 'Rolling Papers', 'Kratom', 'THCA', 'Adult Pills'};
+    if (cigSet.contains(cat)) return 'Cigs';
+    if (tobSet.contains(cat)) return 'Tobacco';
+    return 'Non-Tobacco';
+  }
+
   Widget _buildSummaryCard() {
+    const typeOrder = {'Cigs': 0, 'Tobacco': 1, 'Non-Tobacco': 2};
+    final Map<String, ({int qty, double total})> byType = {};
+    for (final item in CartState.items) {
+      final key = _typeLabel(item.categoryName);
+      final prev = byType[key];
+      byType[key] = (
+        qty: (prev?.qty ?? 0) + (item.qty ?? 0),
+        total: (prev?.total ?? 0.0) + (item.subTotal ?? 0.0),
+      );
+    }
+    final sorted = byType.entries.toList()
+      ..sort((a, b) => (typeOrder[a.key] ?? 9).compareTo(typeOrder[b.key] ?? 9));
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -289,16 +312,14 @@ class _CartWidgetState extends State<CartWidget>
           blurRadius: 12, offset: const Offset(0, 3))],
       ),
       child: Column(children: [
-        FutureBuilder(
-          future: OrderRepository().getCategoryWiseSummary(),
-          builder: (_, snap) {
-            if (!snap.hasData) return const SizedBox();
-            return Column(children: snap.data!.map((e) =>
-              _summaryRow('${e.category}', '${e.qty} units',
-                color: _textLo, bold: false)).toList());
-          },
-        ),
-        _divLine(),
+        if (sorted.isNotEmpty) ...[
+          ...sorted.map((e) => _summaryRow(
+            e.key,
+            '${e.value.qty} × \$${e.value.total.toStringAsFixed(2)}',
+            color: _textLo, bold: false,
+          )),
+          _divLine(),
+        ],
         FutureBuilder(
           future: OrderRepository().getSubTotal(),
           builder: (_, snap) => _summaryRow(

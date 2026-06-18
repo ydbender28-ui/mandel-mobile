@@ -556,11 +556,13 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
   }
 
   String _ptypeLabel(String? ptype) {
-    if (ptype == null || ptype.isEmpty) return 'Other';
-    final p = ptype.toUpperCase();
-    if (p.contains('CIG')) return 'Cigarettes';
-    if (p == 'OTP' || p.contains('TOB')) return 'Tobacco';
-    return ptype;
+    if (ptype == null || ptype.isEmpty) return 'Non-Tobacco';
+    final p = ptype.toUpperCase().trim();
+    const cigTypes = {'CIG', 'ECG'};
+    const tobTypes = {'TOB', 'TOBACCO ACCESSORIES', 'WRAPS/PAPERS/CONES', 'KRATOM', 'THCA', 'ADULT PILLS'};
+    if (cigTypes.contains(p)) return 'Cigs';
+    if (tobTypes.contains(p)) return 'Tobacco';
+    return 'Non-Tobacco';
   }
 
   @override
@@ -842,14 +844,19 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
     for (final item in items) {
       final key = _ptypeLabel(item.ptype);
       byType.putIfAbsent(key, () => _TypeTotals());
-      byType[key]!.count++;
+      byType[key]!.qty += item.qty;
       byType[key]!.total += item.total;
     }
+
+    const typeOrder = {'Cigs': 0, 'Tobacco': 1, 'Non-Tobacco': 2};
+    final sorted = byType.entries.toList()
+      ..sort((a, b) =>
+          (typeOrder[a.key] ?? 9).compareTo(typeOrder[b.key] ?? 9));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (byType.length > 1) ...[
+        if (sorted.isNotEmpty) ...[
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -867,20 +874,24 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
                         color: Colors.grey,
                         letterSpacing: 1)),
                 const SizedBox(height: 8),
-                ...byType.entries.map((e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(e.key,
-                              style: const TextStyle(fontSize: 12)),
-                          Text(
-                              '${e.value.count} items  •  \$${e.value.total.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w500)),
-                        ],
-                      ),
-                    )),
+                ...sorted.map((e) {
+                  final qtyStr = e.value.qty % 1 == 0
+                      ? e.value.qty.toInt().toString()
+                      : e.value.qty.toStringAsFixed(1);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(e.key, style: const TextStyle(fontSize: 12)),
+                        Text(
+                            '$qtyStr × \$${e.value.total.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                  );
+                }),
               ],
             ),
           ),
@@ -913,7 +924,7 @@ class _InvoiceDetailSheetState extends State<_InvoiceDetailSheet> {
 }
 
 class _TypeTotals {
-  int count = 0;
+  double qty = 0;
   double total = 0;
 }
 
