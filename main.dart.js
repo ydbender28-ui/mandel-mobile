@@ -106177,7 +106177,7 @@ p.toString
 A.jE(p,A.bR(new A.aHY(),null,t.z),new A.aHZ())}s=a===2?2:3
 break
 case 2:s=4
-return A.k(A.Be(A.fC("https://mandeldelivery.myshopify.com/pages/contact",0,null),B.mI),$async$C5)
+return A.k(A.Be(A.fC("https://wa.me/17327785437",0,null),B.mI),$async$C5)
 case 4:case 3:if(a===3){p=q.c
 p.toString
 A.aD(p,!1).f0("/Invoice",null,t.X)}if(a===5){p=q.c
