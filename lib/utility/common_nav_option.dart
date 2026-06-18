@@ -34,9 +34,10 @@ class CommonNavOption {
             },
           ),
         ),
-        const Text('New Order',
+        const Text('New Order /\nAdd to Existing',
+            textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 14,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF6C6C6C)))
       ],

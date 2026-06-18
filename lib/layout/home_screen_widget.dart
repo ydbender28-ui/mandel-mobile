@@ -161,7 +161,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
 
   Widget _quickActions(BuildContext context) {
     final actions = [
-      _QA(icon: Icons.add_shopping_cart_rounded, label: 'New Order',
+      _QA(icon: Icons.add_shopping_cart_rounded, label: 'New Order /\nAdd to Existing',
           color: _indigo, onTap: _handleNewOrder),
       _QA(icon: Icons.storefront_rounded,        label: 'Products',
           color: const Color(0xFF0EA5E9),
@@ -213,6 +213,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget>
             const SizedBox(height: 8),
             Text(a.label,
               textAlign: TextAlign.center,
+              maxLines: 2,
               style: const TextStyle(
                 fontSize: 11, fontWeight: FontWeight.w700,
                 color: _textHi),
