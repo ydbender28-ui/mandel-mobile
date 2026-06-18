@@ -275,70 +275,101 @@ class ProductListWidgetState extends State<ProductListWidget>
     );
   }
 
+  void _clearCategoryFilter() {
+    filters.remove('category');
+    filters.remove('isOnDeal');
+    filters.remove('isNewItem');
+    filters['page'] = 0;
+    _initProductLoad = true;
+    _initProductFetching = true;
+    _loadProductList();
+  }
+
   Widget _buildTabListOnly(List<CategoryDto>? categoryList) {
+    final hasFilter = filters['category'] != null ||
+        filters['isOnDeal'] == true ||
+        filters['isNewItem'] == true;
     return Container(
       color: const Color(0xFF07091A),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
-          children: List.generate(categoryList!.length, (index) {
-            final cat = categoryList[index];
-            final isSelected = (filters['category'] == cat.name) ||
-                (index == 0 && filters['category'] == null && filters['isOnDeal'] == null && filters['isNewItem'] == null) ||
-                (index == 1 && filters['isOnDeal'] == true) ||
-                (index == 2 && filters['isNewItem'] == true);
-            return GestureDetector(
-              onTap: () {
-                filters.remove('category');
-                filters.remove('isOnDeal');
-                filters.remove('isNewItem');
-                if (index == 0) {
-                  // ALL
-                } else if (index == 1) {
-                  filters['isOnDeal'] = true;
-                } else if (index == 2) {
-                  filters['isNewItem'] = true;
-                } else {
-                  filters['category'] = cat.name;
-                }
-                filters['page'] = 0;
-                _initProductLoad = true;
-                _initProductFetching = true;
-                _loadProductList();
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(right: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.white.withOpacity(0.92)
-                      : Colors.white.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected
-                        ? Colors.white.withOpacity(0.9)
-                        : Colors.white.withOpacity(0.14),
+          children: [
+            if (hasFilter)
+              GestureDetector(
+                onTap: _clearCategoryFilter,
+                child: Container(
+                  margin: const EdgeInsets.only(right: 6),
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: const Color(0xFFEF4444).withOpacity(0.5)),
                   ),
-                  boxShadow: isSelected
-                      ? [BoxShadow(color: Colors.white.withOpacity(0.15),
-                          blurRadius: 8, offset: const Offset(0, 2))]
-                      : null,
-                ),
-                child: Text(
-                  cat.name ?? '',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected
-                        ? const Color(0xFF07091A)
-                        : Colors.white.withOpacity(0.55),
-                  ),
+                  child: const Icon(Icons.close_rounded,
+                      size: 14, color: Color(0xFFEF4444)),
                 ),
               ),
-            );
-          }),
+            ...List.generate(categoryList!.length, (index) {
+              final cat = categoryList[index];
+              final isSelected = (filters['category'] == cat.name) ||
+                  (index == 0 && filters['category'] == null && filters['isOnDeal'] == null && filters['isNewItem'] == null) ||
+                  (index == 1 && filters['isOnDeal'] == true) ||
+                  (index == 2 && filters['isNewItem'] == true);
+              return GestureDetector(
+                onTap: () {
+                  filters.remove('category');
+                  filters.remove('isOnDeal');
+                  filters.remove('isNewItem');
+                  if (index == 0) {
+                    // ALL
+                  } else if (index == 1) {
+                    filters['isOnDeal'] = true;
+                  } else if (index == 2) {
+                    filters['isNewItem'] = true;
+                  } else {
+                    filters['category'] = cat.name;
+                  }
+                  filters['page'] = 0;
+                  _initProductLoad = true;
+                  _initProductFetching = true;
+                  _loadProductList();
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.only(right: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withOpacity(0.92)
+                        : Colors.white.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected
+                          ? Colors.white.withOpacity(0.9)
+                          : Colors.white.withOpacity(0.14),
+                    ),
+                    boxShadow: isSelected
+                        ? [BoxShadow(color: Colors.white.withOpacity(0.15),
+                            blurRadius: 8, offset: const Offset(0, 2))]
+                        : null,
+                  ),
+                  child: Text(
+                    cat.name ?? '',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? const Color(0xFF07091A)
+                          : Colors.white.withOpacity(0.55),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
         ),
       ),
     );
