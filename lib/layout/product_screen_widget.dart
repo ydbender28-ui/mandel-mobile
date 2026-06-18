@@ -8,7 +8,15 @@ import 'package:mandel_mobile_app/model/product_search_arguments.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 
 class ProductScreenWidget extends StatefulWidget {
-  const ProductScreenWidget({super.key});
+  final ProductDetailsOptions? productDetailsOptions;
+  final Map<String, dynamic>? initialFilters;
+  final int startingIndex;
+  const ProductScreenWidget({
+    super.key,
+    this.productDetailsOptions,
+    this.initialFilters,
+    this.startingIndex = 0,
+  });
   @override
   State<ProductScreenWidget> createState() => _ProductScreenWidgetState();
 }
@@ -35,13 +43,12 @@ class _ProductScreenWidgetState extends State<ProductScreenWidget> {
         .copyWith(statusBarColor: Colors.transparent));
 
     final routeArgs = ModalRoute.of(context)?.settings.arguments;
-    final args = routeArgs is ProductSearchArguments
-        ? routeArgs
-        : ProductSearchArguments(
-            filters: {},
-            productDetailsOptions:
-                ProductDetailsOptions(showAddToCart: true, showReturn: false),
-          );
+    final argsFromRoute = routeArgs is ProductSearchArguments ? routeArgs : null;
+    final options = widget.productDetailsOptions
+        ?? argsFromRoute?.productDetailsOptions
+        ?? ProductDetailsOptions(showAddToCart: true, showReturn: false);
+    final filters = widget.initialFilters ?? argsFromRoute?.filters ?? {};
+    final startingTab = argsFromRoute?.startingIndex ?? widget.startingIndex;
 
     return Scaffold(
       backgroundColor: const Color(0xFF07091A),
@@ -50,9 +57,9 @@ class _ProductScreenWidgetState extends State<ProductScreenWidget> {
         Expanded(
           child: ProductListWidget(
             key: _listKey,
-            startingTab: args.startingIndex,
-            initialFilters: args.filters,
-            productDetailsOptions: args.productDetailsOptions,
+            startingTab: startingTab,
+            initialFilters: filters,
+            productDetailsOptions: options,
           ),
         ),
       ]),

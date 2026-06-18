@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mandel_mobile_app/model/product_search_arguments.dart';
 import 'package:mandel_mobile_app/layout/bluetooth_devices_screen_widget.dart';
 import 'package:mandel_mobile_app/layout/quick_order_screen.dart';
 import 'package:mandel_mobile_app/layout/salesman_screen_widget.dart';
@@ -44,8 +45,15 @@ class RouteGenerator {
                   defaultIndex: 0,
                 ));
       case CommonConstants.searchScreenUrl:
+        final _psa = route.arguments is ProductSearchArguments
+            ? route.arguments as ProductSearchArguments : null;
         return MaterialPageRoute(
-            settings: route, builder: (_) => const ProductScreenWidget());
+            settings: route,
+            builder: (_) => ProductScreenWidget(
+              productDetailsOptions: _psa?.productDetailsOptions,
+              initialFilters: _psa?.filters,
+              startingIndex: _psa?.startingIndex ?? 0,
+            ));
       case CommonConstants.brandScreenWidget:
         return MaterialPageRoute(
             settings: route, builder: (_) => const BrandScreenWidget());
