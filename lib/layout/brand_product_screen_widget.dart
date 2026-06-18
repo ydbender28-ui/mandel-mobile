@@ -371,6 +371,10 @@ class _BrandProductScreenWidgetState extends State<BrandProductScreenWidget> {
             overflow: TextOverflow.ellipsis,
           ),
           Text(
+            '#${productDt.getProductCode()}',
+            style: const TextStyle(fontSize: 10, color: Colors.grey),
+          ),
+          Text(
             productDt.getCategoryName(),
             style: const TextStyle(fontSize: 12),
             softWrap: false,

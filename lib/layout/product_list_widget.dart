@@ -781,7 +781,12 @@ class ProductListWidgetState extends State<ProductListWidget>
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 2),
+          Text(
+            '#${productDt.getProductCode()}',
+            style: TextStyle(fontSize: 10, color: Colors.white.withOpacity(0.4)),
+          ),
+          const SizedBox(height: 1),
           Text(
             productDt.getCategoryName(),
             style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.55)),
