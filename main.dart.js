@@ -104378,7 +104378,7 @@ s.toString
 s=s<=0?q:new A.aG0(r,a)
 n.push(A.e7(A.ba(A.k6(B.Qq,B.a8c,s,A.dB(q,q,q,q,q,q,q,q,q,q,q,B.cj,q,q,q,q,q,q,q,q)),1),!0))}return A.y(q,A.a5(A.a([p,B.c3,A.a4(n,B.i,B.a2,B.f)],o),B.bD,B.h,B.f),B.e,q,q,q,q,q,B.Nl,q,q,q,q)},
 asz(a){var s,r=this
-r.z="FULL_PACK"
+r.z=r.x==="PIECE"?"PIECE":"FULL_PACK"
 r.at=!1
 s=r.c
 s.toString
