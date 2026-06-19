@@ -77,8 +77,8 @@ class ReturnItemEntity {
     subTotal = json['sub_total'];
     discount = json['discount'];
     qty = json['qty'];
-    returnReason = json['returnReason'];
-    returnType = json['returnType'];
+    returnReason = json['return_reason'];
+    returnType = json['return_type'];
   }
 
   Map<String, dynamic> insetDataToJson() {

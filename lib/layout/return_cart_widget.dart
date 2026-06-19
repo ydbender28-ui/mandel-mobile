@@ -1,24 +1,18 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mandel_mobile_app/db/entity/return_item_entity.dart';
-import 'package:mandel_mobile_app/db/repository/user_master_repository.dart';
 import 'package:mandel_mobile_app/layout/bottom_sheet_dialog/clear_cart_confirmation_dialog.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/common_cart_number_picker.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/multi_action_confirmation_widget.dart';
 import 'package:mandel_mobile_app/layout/main_screen_widget.dart';
 import 'package:mandel_mobile_app/model/product_details_options.dart';
-import 'package:mandel_mobile_app/model/product_dto.dart';
 import 'package:mandel_mobile_app/model/product_search_arguments.dart';
-import 'package:mandel_mobile_app/model/return_dto.dart';
-import 'package:mandel_mobile_app/model/return_item_dto.dart';
 import 'package:mandel_mobile_app/model/scanner_arguments.dart';
-import 'package:mandel_mobile_app/model/user_dto.dart';
-import 'package:mandel_mobile_app/service/return_service.dart';
 import 'package:mandel_mobile_app/utility/barcode_scanner_utility.dart';
 import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
+import 'package:mandel_mobile_app/utility/dio_client.dart';
 import 'package:mandel_mobile_app/utility/message_utility.dart';
 import 'package:mandel_mobile_app/utility/return_state.dart';
 
@@ -705,19 +699,20 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
   Future<void> _placeReturn() async {
     setState(() { isProcess = true; });
     try {
-      final userId = await UserMasterRepository().getUserId();
-      final returnItemList = ReturnState.items.map((element) => ReturnItemDto(
-          product: ProductDto(id: element.productId),
-          quantity: element.qty,
-          unitPrice: element.unitPrice,
-          returnReason: element.returnReason,
-          note: _otherReasonTextController.text,
-          returnType: element.returnType,
-          returnStatus: 'PENDING',
-          returnPrice: element.returnPrice)).toList();
-
-      Response response = await ReturnService().postReturn(
-          ReturnDto(returnItems: returnItemList, user: UserDto(id: userId)));
+      final response = await DioClient().dio.post(
+        buildUrl('/product-returns'),
+        data: {
+          'items': ReturnState.items.map((e) => {
+            'productId': e.productId,
+            'productName': e.productName ?? '',
+            'qty': e.qty ?? 1,
+            'unitPrice': e.returnPrice ?? e.unitPrice ?? 0,
+            'returnType': e.returnType ?? 'FULL_PACK',
+            'returnReason': e.returnReason ?? '',
+          }).toList(),
+          'notes': _otherReasonTextController.text,
+        },
+      );
       if (!mounted) return;
 
       if (response.statusCode == 201) {
