@@ -270,6 +270,32 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
     );
   }
 
+  Widget _buildIconFallback(Color color, IconData icon, {String? label}) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.22), color.withOpacity(0.08)],
+          begin: Alignment.topLeft, end: Alignment.bottomRight),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 28),
+          if (label != null) ...[
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(label,
+                textAlign: TextAlign.center, maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: color, height: 1.2)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildBrandGrid() {
     return FutureBuilder(
       future: _loadCategoryList(),
@@ -291,44 +317,46 @@ class _CategoryScreenWidgetState extends State<CategoryScreenWidget> {
                   return GestureDetector(
                     onTap: () => Navigator.push(context, MaterialPageRoute(
                         builder: (_) => CategoryProductScreenWidget(categoryDto: cat))),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [color.withOpacity(0.18), color.withOpacity(0.06)],
-                          begin: Alignment.topLeft, end: Alignment.bottomRight),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: color.withOpacity(0.22)),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 44, height: 44,
-                            decoration: BoxDecoration(
-                              color: color.withOpacity(0.15),
-                              shape: BoxShape.circle),
-                            clipBehavior: Clip.antiAlias,
-                            child: imgUrl != null
-                                ? Image.network(
-                                    imgUrl,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Icon(icon, color: color, size: 22),
-                                  )
-                                : Icon(icon, color: color, size: 22),
-                          ),
-                          const SizedBox(height: 5),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Text(name,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 9, fontWeight: FontWeight.w700,
-                                color: color, height: 1.2)),
-                          ),
-                        ],
-                      ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: imgUrl != null
+                          ? Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.network(
+                                  imgUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _buildIconFallback(color, icon),
+                                ),
+                                // Dark gradient overlay for text readability
+                                DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.72),
+                                      ],
+                                      stops: const [0.45, 1.0],
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 8, left: 4, right: 4,
+                                  child: Text(name,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 10, fontWeight: FontWeight.w700,
+                                      color: Colors.white, height: 1.2,
+                                      shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
+                                    )),
+                                ),
+                              ],
+                            )
+                          : _buildIconFallback(color, icon, label: name),
                     ),
                   );
                 }),
