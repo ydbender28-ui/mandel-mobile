@@ -677,7 +677,7 @@ class _OrderAndReturnScreenWidgetState extends State<OrderAndReturnScreenWidget>
   // }
 
   void _showReturnReasonDialog(ProductDto product) {
-    _packCondition = 'FULL_PACK';
+    _packCondition = (returnTypeValue == 'PIECE') ? 'PIECE' : 'FULL_PACK';
     _reasonSelected = false;
     showModalBottomSheet(
         isScrollControlled: true,
