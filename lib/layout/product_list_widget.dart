@@ -77,6 +77,9 @@ class ProductListWidgetState extends State<ProductListWidget>
   // Version counter — discard responses from superseded search calls
   int _loadVersion = 0;
 
+  // Full unfiltered product list — used for instant client-side category/filter switching
+  List<ProductDto> _allProducts = [];
+
   // Store the category future so it's only created once (not on every rebuild)
   late Future<List<CategoryDto>> _categoryFuture;
 
@@ -114,6 +117,31 @@ class ProductListWidgetState extends State<ProductListWidget>
   Future<void> _loadProductList() async {
     final shouldClear = _initProductLoad;
     final myVersion = ++_loadVersion;
+
+    final hasText = (filters['productName'] ?? '').toString().isNotEmpty;
+    final catName = filters['category'] as String?;
+    final isNew = filters['isNewItem'] == true;
+    final isDeals = filters['isOnDeal'] == true;
+    final hasQuickFilter = catName != null || isNew;
+
+    // Instant client-side filter — no network round-trip
+    if (!hasText && !isDeals && _allProducts.isNotEmpty) {
+      if (!mounted || myVersion != _loadVersion) return;
+      setState(() {
+        if (hasQuickFilter) {
+          productList = _allProducts.where((p) {
+            if (catName != null) return p.category?.name == catName;
+            if (isNew) return p.isNew == true;
+            return true;
+          }).toList();
+        } else {
+          productList = List.from(_allProducts);
+        }
+        _initProductFetching = false;
+      });
+      return;
+    }
+
     try {
       ProductSearchResultDto output = await _productService.searchProduct(
           filters, filters['page'], filters['pageSize']);
@@ -123,6 +151,10 @@ class ProductListWidgetState extends State<ProductListWidget>
         productList.addAll(output.results ?? []);
         _hasMore = (output.meta?.totalCount ?? 0) > productList.length;
         _initProductFetching = false;
+        // Cache the unfiltered full list for client-side filtering
+        if (!hasText && !hasQuickFilter && !isDeals && shouldClear) {
+          _allProducts = List.from(productList);
+        }
       });
     } catch (e) {
       debugPrint('Product load error: $e');
