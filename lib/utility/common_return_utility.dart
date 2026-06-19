@@ -1,9 +1,7 @@
 import 'package:mandel_mobile_app/db/entity/return_item_entity.dart';
-import 'package:mandel_mobile_app/db/entity/return_master_entity.dart';
-import 'package:mandel_mobile_app/db/repository/return_item_repository.dart';
-import 'package:mandel_mobile_app/db/repository/return_master_repository.dart';
 import 'package:mandel_mobile_app/model/product_dto.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
+import 'package:mandel_mobile_app/utility/return_state.dart';
 
 class CommonReturnUtility with CommonUtility {
   Future<void> addToReturnList(
@@ -12,54 +10,25 @@ class CommonReturnUtility with CommonUtility {
       required String returnReason,
       required int qty,
       required double returnPrice}) async {
-    ReturnMasterEntity returnMasterEntity = ReturnMasterEntity(
-        id: 1,
-        createdDate: getCurrentTimeStampText(),
-        updatedDate: getCurrentTimeStampText());
-
-    bool exist = await ReturnMasterRepository().isReturnExist();
-    if (!exist) {
-      await ReturnMasterRepository()
-          .storeReturnMasterRecode(returnMasterEntity);
-    } else {
-      await ReturnMasterRepository()
-          .updateReturnMasterRecode(returnMasterEntity);
-    }
-
     double unitPrice = getUnitPrice(productDto: productDto);
-    double subTotal = (returnPrice * qty);
+    double subTotal = returnPrice * qty;
 
-    ReturnItemEntity orderItem = ReturnItemEntity(
-        productId: productDto.id,
-        productName: productDto.productName,
-        qty: qty,
-        unitPrice: unitPrice,
-        subTotal: subTotal,
-        returnReason: returnReason,
-        returnType: returnType,
-        returnMasterId: 1,
-        returnPrice: returnPrice);
+    final item = ReturnItemEntity(
+      productId: productDto.id,
+      productName: productDto.productName,
+      qty: qty,
+      unitPrice: unitPrice,
+      subTotal: subTotal,
+      returnReason: returnReason,
+      returnType: returnType,
+      returnMasterId: 1,
+      returnPrice: returnPrice,
+      categoryName: productDto.category?.name,
+      brandName: productDto.brand?.name,
+      size: productDto.size?.name,
+    );
 
-    if (null != productDto.size) {
-      orderItem.size = productDto.size!.name;
-    }
-
-    if (null != productDto.category) {
-      orderItem.categoryName = productDto.category!.name;
-    }
-
-    if (null != productDto.brand) {
-      orderItem.brandName = productDto.brand!.name;
-    }
-
-    bool isExist = await ReturnItemRepository()
-        .isItemExist(orderItem.productId!, orderItem.returnType!);
-    if (!isExist) {
-      await ReturnItemRepository().storeReturnItemRecode(orderItem);
-    } else {
-      await ReturnItemRepository()
-          .updateReturnItemRecode(orderItem, orderItem.productId!);
-    }
+    ReturnState.addOrUpdate(item);
   }
 
   ///

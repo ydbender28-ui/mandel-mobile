@@ -2,9 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mandel_mobile_app/db/entity/return_item_entity.dart';
-import 'package:mandel_mobile_app/db/entity/return_master_entity.dart';
-import 'package:mandel_mobile_app/db/repository/return_item_repository.dart';
-import 'package:mandel_mobile_app/db/repository/return_master_repository.dart';
 import 'package:mandel_mobile_app/db/repository/user_master_repository.dart';
 import 'package:mandel_mobile_app/layout/bottom_sheet_dialog/clear_cart_confirmation_dialog.dart';
 import 'package:mandel_mobile_app/layout/common_custom_widget/common_cart_number_picker.dart';
@@ -23,6 +20,7 @@ import 'package:mandel_mobile_app/utility/common_constants.dart';
 import 'package:mandel_mobile_app/utility/common_custom_color.dart';
 import 'package:mandel_mobile_app/utility/common_utility.dart';
 import 'package:mandel_mobile_app/utility/message_utility.dart';
+import 'package:mandel_mobile_app/utility/return_state.dart';
 
 class ReturnCartWidget extends StatefulWidget {
   const ReturnCartWidget({super.key});
@@ -46,7 +44,6 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
   ];
 
   String groupValue = 'Unsaleable';
-
   bool isProcess = false;
 
   @override
@@ -88,6 +85,7 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
   }
 
   Widget _buildHeader() {
+    final count = ReturnState.itemCount;
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -112,13 +110,12 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
                   const Text('Return Cart',
                     style: TextStyle(color: Colors.white, fontSize: 22,
                         fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-                  FutureBuilder<String?>(
-                    future: ReturnMasterRepository().getLastUpdatedTimeStamp(),
-                    builder: (_, snap) => Text(
-                      snap.data != null ? 'Updated ${snap.data}' : 'Empty returns',
-                      style: TextStyle(
-                          color: Colors.white.withOpacity(0.5), fontSize: 11)),
-                  ),
+                  Text(
+                    count > 0
+                        ? '$count item${count == 1 ? '' : 's'} to return'
+                        : 'No items in cart',
+                    style: TextStyle(
+                        color: Colors.white.withOpacity(0.5), fontSize: 11)),
                 ]),
               ),
               GestureDetector(
@@ -226,217 +223,190 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
     );
   }
 
-  ///
-  ///This method will build order list
   _buildOrderList(BuildContext context) {
-    return FutureBuilder(
-      future: ReturnItemRepository().getReturnList(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError || (snapshot.hasData && snapshot.data!.isEmpty)) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40),
-            child: Center(
-              child: Column(
+    final items = ReturnState.items;
+
+    if (items.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.assignment_return_outlined,
+                  size: 48, color: Colors.grey.shade400),
+              const SizedBox(height: 12),
+              Text('No items in return cart',
+                  style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              Text('Tap the button above to add items',
+                  style: TextStyle(
+                      fontSize: 13, color: Colors.grey.shade400)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final bool piecePrice = item.returnType == 'PIECE';
+        return Container(
+          margin: const EdgeInsets.only(
+              left: 15, right: 15, top: 10, bottom: 10),
+          child: Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.assignment_return_outlined,
-                      size: 48, color: Colors.grey.shade400),
-                  const SizedBox(height: 12),
-                  Text('No items in return cart',
-                      style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey.shade500,
-                          fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 4),
-                  Text('Tap the button above to add items',
-                      style: TextStyle(
-                          fontSize: 13, color: Colors.grey.shade400)),
-                ],
-              ),
-            ),
-          );
-        }
-
-        if (!snapshot.hasData) {
-          return const SizedBox.shrink();
-        }
-
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                bool piecePrice = snapshot.data![index].returnType == "PIECE";
-                return Container(
-                  margin: const EdgeInsets.only(
-                      left: 15, right: 15, top: 10, bottom: 10),
-                  child: Row(
+                  SizedBox(
+                    width: 193,
+                    child: Text(
+                      '${item.productName}',
+                      softWrap: false,
+                      overflow: TextOverflow.fade,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  Row(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 193,
-                            child: Text(
-                              '${snapshot.data![index].productName}',
-                              softWrap: false,
-                              overflow: TextOverflow.fade,
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w700),
+                      Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Category : ',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: CommonCustomColor.menuItemColor),
                             ),
-                          ),
-                          Row(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(right: 10),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      'Category : ',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color:
-                                              CommonCustomColor.menuItemColor),
-                                    ),
-                                    SizedBox(
-                                      width: 120,
-                                      child: Text(
-                                        snapshot.data![index].categoryName ??
-                                            CommonConstants
-                                                .emptyRecodeIndicator,
-                                        style: const TextStyle(
-                                            fontSize: 12,
-                                            color: CommonCustomColor
-                                                .defaultTextColor),
-                                        softWrap: false,
-                                        overflow: TextOverflow.fade,
-                                      ),
-                                    )
-                                  ],
-                                ),
+                            SizedBox(
+                              width: 120,
+                              child: Text(
+                                item.categoryName ??
+                                    CommonConstants.emptyRecodeIndicator,
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        CommonCustomColor.defaultTextColor),
+                                softWrap: false,
+                                overflow: TextOverflow.fade,
                               ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Row(
-                                children: [
-                                  const Text(
-                                    'Brand : ',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: CommonCustomColor.menuItemColor),
-                                  ),
-                                  SizedBox(
-                                    width: 150,
-                                    child: Text(
-                                      snapshot.data![index].brandName ??
-                                          CommonConstants.emptyRecodeIndicator,
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          color: CommonCustomColor
-                                              .defaultTextColor),
-                                      softWrap: false,
-                                      overflow: TextOverflow.fade,
-                                    ),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(right: 10),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      'Size : ',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color:
-                                              CommonCustomColor.menuItemColor),
-                                    ),
-                                    Text(
-                                      snapshot.data![index].size ??
-                                          CommonConstants.emptyRecodeIndicator,
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          color: CommonCustomColor
-                                              .defaultTextColor),
-                                    )
-                                  ],
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  const Text('Unit Price : \$',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color:
-                                              CommonCustomColor.menuItemColor)),
-                                  Text(
-                                    snapshot.data![index].returnPrice!
-                                        .toStringAsFixed(2),
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        color:
-                                            CommonCustomColor.defaultTextColor),
-                                  ),
-                                  Text(
-                                    " per ${piecePrice ? 'Piece' : 'Box'}",
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        color:
-                                            CommonCustomColor.defaultTextColor),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Row(
-                                children: [
-                                  const Text('Sub Total : \$',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color:
-                                              CommonCustomColor.menuItemColor)),
-                                  Text(
-                                      snapshot.data![index].subTotal!
-                                          .toStringAsFixed(2),
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: CommonCustomColor
-                                              .defaultTextColor))
-                                ],
-                              ),
-                            ],
-                          )
-                        ],
+                            )
+                          ],
+                        ),
                       ),
-                      const Spacer(),
-                      _buildItemQtyPicker(snapshot.data!, index, () {
-                        setState(() {});
-                      })
                     ],
                   ),
-                );
-              },
-              separatorBuilder: (context, index) {
-                return const Divider(
-                  indent: 10,
-                  endIndent: 10,
-                );
-              },
-              itemCount: snapshot.data!.length);
+                  Row(
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'Brand : ',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: CommonCustomColor.menuItemColor),
+                          ),
+                          SizedBox(
+                            width: 150,
+                            child: Text(
+                              item.brandName ??
+                                  CommonConstants.emptyRecodeIndicator,
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: CommonCustomColor.defaultTextColor),
+                              softWrap: false,
+                              overflow: TextOverflow.fade,
+                            ),
+                          )
+                        ],
+                      )
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Size : ',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: CommonCustomColor.menuItemColor),
+                            ),
+                            Text(
+                              item.size ??
+                                  CommonConstants.emptyRecodeIndicator,
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color:
+                                      CommonCustomColor.defaultTextColor),
+                            )
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          const Text('Unit Price : \$',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: CommonCustomColor.menuItemColor)),
+                          Text(
+                            item.returnPrice!.toStringAsFixed(2),
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: CommonCustomColor.defaultTextColor),
+                          ),
+                          Text(
+                            ' per ${piecePrice ? 'Piece' : 'Box'}',
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: CommonCustomColor.defaultTextColor),
+                          )
+                        ],
+                      )
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Text('Sub Total : \$',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: CommonCustomColor.menuItemColor)),
+                      Text(
+                          item.subTotal!.toStringAsFixed(2),
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: CommonCustomColor.defaultTextColor))
+                    ],
+                  )
+                ],
+              ),
+              const Spacer(),
+              _buildItemQtyPicker(items.toList(), index, () {
+                setState(() {});
+              })
+            ],
+          ),
+        );
+      },
+      separatorBuilder: (context, index) {
+        return const Divider(indent: 10, endIndent: 10);
       },
     );
   }
 
-  ///
-  ///This method will return number picker
   _buildItemQtyPicker(
       List<ReturnItemEntity> orderEntities, int index, Function update) {
     return SizedBox(
@@ -444,48 +414,34 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
         builder: (context, setState) {
           return CommonCartNumberPicker(
               onChange: (value) {
-                double unitPrice = orderEntities[index].unitPrice ?? 0.0;
-                double discount = orderEntities[index].discount ?? 0.0;
-                double subTotal = (unitPrice * value) - discount;
-
-                ReturnItemEntity orderItemEntity = orderEntities[index];
-                orderItemEntity.qty = value;
-                orderItemEntity.subTotal = subTotal;
+                final orderItemEntity = orderEntities[index];
 
                 if (value < 1) {
                   ClearCartConfirmationDialog(
                     context: context,
                     clearOrder: orderEntities.length == 1,
-                    masterClearTitle: "Clear Returns ?",
+                    masterClearTitle: 'Clear Returns ?',
                     masterClearDetail:
-                        "You can save the return and place the return later ?",
-                    itemClearTitle: "Remove Item",
-                    itemCleatDetail: "Do you want to remove this item ?",
+                        'You can save the return and place the return later ?',
+                    itemClearTitle: 'Remove Item',
+                    itemCleatDetail: 'Do you want to remove this item ?',
                     onSelect: (confirmation) {
-                      setState(() {
-                        ///Remove order if order item length = 1
-                        ///Item remove if order item length > 1
-                        if (confirmation) {
-                          if (orderEntities.length == 1) {
-                            ReturnMasterRepository().deleteReturn(1);
-                          }
-                          ReturnItemRepository()
-                              .deleteItem(orderItemEntity.productId!);
-                        } else {
-                          orderEntities[index].qty = 1;
-                        }
-                        update();
-                      });
+                      if (confirmation) {
+                        ReturnState.removeItem(orderItemEntity.productId!);
+                      } else {
+                        orderEntities[index].qty = 1;
+                      }
+                      setState(() {});
+                      update();
                     },
                   ).showClearCartConfirmation();
                 } else {
-                  ReturnItemRepository().updateReturnItemQtyRecode(
-                      orderItemEntity, orderItemEntity.productId!);
+                  ReturnState.updateQty(
+                      orderItemEntity.productId!,
+                      orderItemEntity.returnType ?? 'FULL_PACK',
+                      value);
                   update();
                 }
-
-                ReturnMasterRepository().updateReturnMasterRecode(
-                    ReturnMasterEntity(updatedDate: getCurrentTimeStampText()));
               },
               defaultValue: orderEntities[index].qty ?? 0);
         },
@@ -493,8 +449,6 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
     );
   }
 
-  ///
-  ///This method will return all summary information contents
   _buildSummary() {
     return Container(
       margin: const EdgeInsets.all(15),
@@ -508,8 +462,6 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
     );
   }
 
-  ///
-  ///This method will return summary title
   _buildSummaryTitle() {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -520,96 +472,34 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
     );
   }
 
-  ///
-  ///This method will return category wise summary
   _buildCategorySummary() {
-    return FutureBuilder(
-      future: ReturnItemRepository().getCategoryWiseSummary(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          List<Widget> items = [];
-
-          for (var element in snapshot.data!) {
-            items.add(Row(
-              children: [
-                Text(
-                  '${element.category}',
-                  style: const TextStyle(
-                      fontSize: 14, color: CommonCustomColor.defaultTextColor),
-                ),
-                const Spacer(),
-                Text(
-                  '${element.qty}',
-                  style: const TextStyle(
-                      fontSize: 14, color: CommonCustomColor.defaultTextColor),
-                )
-              ],
-            ));
-          }
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 5),
-            child: Column(
-              children: [...items],
-            ),
-          );
-        }
-        return Container();
-      },
-    );
-  }
-
-  ///
-  ///This method will return sub total of oder items
-  _buildSubTotal() {
-    return Row(
-      children: [
-        const Text(
-          'Sub Total',
-          style: TextStyle(
-              fontSize: 14, color: CommonCustomColor.defaultTextColor),
-        ),
-        const Spacer(),
-        FutureBuilder(
-          future: ReturnItemRepository().getSubTotal(),
-          builder: (context, snapshot) {
-            return Text(snapshot.hasData ? snapshot.data! : '0.0',
+    final items = ReturnState.items;
+    final Map<String, int> catQtys = {};
+    for (final item in items) {
+      final cat = item.categoryName ?? 'Unknown';
+      catQtys[cat] = (catQtys[cat] ?? 0) + (item.qty ?? 0);
+    }
+    if (catQtys.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 5),
+      child: Column(
+        children: catQtys.entries.map((e) => Row(
+          children: [
+            Text(e.key,
                 style: const TextStyle(
-                    fontSize: 14, color: CommonCustomColor.defaultTextColor));
-          },
-        )
-      ],
+                    fontSize: 14,
+                    color: CommonCustomColor.defaultTextColor)),
+            const Spacer(),
+            Text('${e.value}',
+                style: const TextStyle(
+                    fontSize: 14,
+                    color: CommonCustomColor.defaultTextColor)),
+          ],
+        )).toList(),
+      ),
     );
   }
 
-  ///
-  ///This method will return total of discounted items
-  _buildDiscount() {
-    return Row(
-      children: [
-        const Text(
-          'Discount',
-          style: TextStyle(fontSize: 14, color: CommonCustomColor.pendingColor),
-        ),
-        const Spacer(),
-        FutureBuilder(
-          future: ReturnItemRepository().getDiscount(),
-          builder: (context, snapshot) {
-            return Text(
-              snapshot.hasData ? snapshot.data! : '0.0',
-              style: const TextStyle(
-                  decoration: TextDecoration.lineThrough,
-                  fontSize: 14,
-                  color: CommonCustomColor.pendingColor),
-            );
-          },
-        )
-      ],
-    );
-  }
-
-  ///
-  ///This method will return grand total of order
   _buildGrandTotal() {
     return Row(
       children: [
@@ -619,54 +509,40 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
               fontSize: 18, color: CommonCustomColor.defaultTextColor),
         ),
         const Spacer(),
-        FutureBuilder(
-          future: ReturnItemRepository().getFormattedGrandTotal(),
-          builder: (context, snapshot) {
-            return Text(
-              snapshot.hasData ? "\$${snapshot.data!}" : '\$0.0',
-              style: const TextStyle(
-                  fontSize: 18, color: CommonCustomColor.defaultTextColor),
-            );
-          },
-        )
+        Text(
+          '\$${ReturnState.grandTotal.toStringAsFixed(2)}',
+          style: const TextStyle(
+              fontSize: 18, color: CommonCustomColor.defaultTextColor),
+        ),
       ],
     );
   }
 
   _buildPlaceOrderButton() {
-    return FutureBuilder(
-      future: ReturnMasterRepository().isReturnExist(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return Container(
-            margin:
-                const EdgeInsets.only(top: 20, bottom: 20, left: 15, right: 15),
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                    ),
-                    minimumSize: const Size.fromHeight(50)),
-                onPressed: postReturnProduct(snapshot),
-                child: isProcess
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          backgroundColor: Colors.white,
-                          color: Colors.black,
-                        ),
-                      )
-                    : const Text(
-                        "Place the Return",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
-                      )),
-          );
-        }
-
-        return Container();
-      },
+    if (ReturnState.itemCount == 0) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(top: 20, bottom: 20, left: 15, right: 15),
+      child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(15.0)),
+              ),
+              minimumSize: const Size.fromHeight(50)),
+          onPressed: isProcess ? null : _placeReturn,
+          child: isProcess
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    backgroundColor: Colors.white,
+                    color: Colors.black,
+                  ),
+                )
+              : const Text(
+                  'Place the Return',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
+                )),
     );
   }
 
@@ -701,9 +577,7 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
                                 overflow: TextOverflow.fade,
                               ),
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            const SizedBox(width: 10),
                             IconButton(
                               icon: Image.asset(
                                 'assets/images/mandel_close_icon.png',
@@ -731,7 +605,6 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
 
   _buildReasonList(StateSetter state) {
     List<Widget> reasonWidgetList = [];
-
     for (var element in returnReasons) {
       reasonWidgetList.add(RadioListTile<String>(
         contentPadding: EdgeInsets.zero,
@@ -795,7 +668,7 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
     return Container(
       margin: const EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10),
       child: ElevatedButton(
-        onPressed: () {}, //postReturnProduct(state),
+        onPressed: () {},
         style: ElevatedButton.styleFrom(
           minimumSize: const Size.fromHeight(50),
           backgroundColor: CommonCustomColor.defaultTextColor,
@@ -816,97 +689,58 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
         ),
       );
     }
-
     return const Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.assignment_return_outlined),
-        SizedBox(
-          width: 20,
-        ),
+        SizedBox(width: 20),
         Text(
-          "Add to Return",
+          'Add to Return',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         )
       ],
     );
   }
 
-  postReturnProduct(AsyncSnapshot<bool> snapshot) {
-    if (isProcess) {
-      return null;
-    }
-
-    if (snapshot.hasError) {
-      return null;
-    }
-
-    if (!snapshot.data!) {
-      return null;
-    }
-    return () async {
-      List<ReturnItemDto> returnItemList = [];
-
-      // if (_formKey.currentState!.validate()) {
-      // state(() {
-      //   isProcess = !isProcess;
-      // });
-
-      setState(() {
-        isProcess = !isProcess;
-      });
+  Future<void> _placeReturn() async {
+    setState(() { isProcess = true; });
+    try {
       final userId = await UserMasterRepository().getUserId();
-      List<ReturnItemEntity> returnItemEntityList =
-          await ReturnItemRepository().getReturnList();
-
-      for (var element in returnItemEntityList) {
-        returnItemList.add(ReturnItemDto(
-            product: ProductDto(id: element.productId),
-            quantity: element.qty,
-            unitPrice: element.unitPrice,
-            returnReason: element.returnReason,
-            note: _otherReasonTextController.text,
-            returnType: element.returnType,
-            returnStatus: 'PENDING',
-            returnPrice: element.returnPrice));
-      }
+      final returnItemList = ReturnState.items.map((element) => ReturnItemDto(
+          product: ProductDto(id: element.productId),
+          quantity: element.qty,
+          unitPrice: element.unitPrice,
+          returnReason: element.returnReason,
+          note: _otherReasonTextController.text,
+          returnType: element.returnType,
+          returnStatus: 'PENDING',
+          returnPrice: element.returnPrice)).toList();
 
       Response response = await ReturnService().postReturn(
           ReturnDto(returnItems: returnItemList, user: UserDto(id: userId)));
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       if (response.statusCode == 201) {
-        ReturnItemRepository().clearReturnItems();
-        ReturnMasterRepository().clearReturnMaster();
-
-        ///
+        ReturnState.clear();
         Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-          builder: (context) {
-            return const MainScreenWidget(
-              defaultIndex: 0,
-            );
-          },
+          builder: (_) => const MainScreenWidget(defaultIndex: 0),
         ), (route) => false);
-
-        ///
         showSuccessMessage(
             message: 'Your return has been successfully processed!',
             context: context);
       } else {
-        Navigator.of(context).pop();
         showErrorMessage(
             message: 'Return placement failed. Please contact support!',
             context: context);
       }
-
-      // state(() {
-      //   isProcess = !isProcess;
-      // });
-      setState(() {
-        isProcess = !isProcess;
-      });
-      // }
-    };
+    } catch (_) {
+      if (!mounted) return;
+      showErrorMessage(
+          message: 'Return placement failed. Please contact support!',
+          context: context);
+    } finally {
+      if (mounted) setState(() { isProcess = false; });
+    }
   }
 
   Widget _buildBackButton() {
