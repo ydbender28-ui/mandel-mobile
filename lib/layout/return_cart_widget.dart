@@ -348,41 +348,12 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
                           ],
                         ),
                       ),
-                      Row(
-                        children: [
-                          const Text('Unit Price : \$',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: CommonCustomColor.menuItemColor)),
-                          Text(
-                            item.returnPrice!.toStringAsFixed(2),
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: CommonCustomColor.defaultTextColor),
-                          ),
-                          Text(
-                            ' per ${piecePrice ? 'Piece' : 'Box'}',
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: CommonCustomColor.defaultTextColor),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Text('Sub Total : \$',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: CommonCustomColor.menuItemColor)),
                       Text(
-                          item.subTotal!.toStringAsFixed(2),
-                          style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: CommonCustomColor.defaultTextColor))
+                        piecePrice ? 'Per Piece' : 'Per Box',
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: CommonCustomColor.menuItemColor),
+                      ),
                     ],
                   )
                 ],
@@ -495,20 +466,26 @@ class _ReturnCartWidgetState extends State<ReturnCartWidget>
   }
 
   _buildGrandTotal() {
-    return Row(
-      children: [
-        const Text(
-          'Grand Total',
-          style: TextStyle(
-              fontSize: 18, color: CommonCustomColor.defaultTextColor),
-        ),
-        const Spacer(),
-        Text(
-          '\$${ReturnState.grandTotal.toStringAsFixed(2)}',
-          style: const TextStyle(
-              fontSize: 18, color: CommonCustomColor.defaultTextColor),
-        ),
-      ],
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline_rounded, size: 15, color: Colors.orange.shade700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Credit amount will be determined by our team upon review.',
+              style: TextStyle(fontSize: 12, color: Colors.orange.shade800),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
